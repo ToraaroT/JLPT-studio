@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>JLPT N2 聴解教材エディター v0.9.0</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--line:#dde2ea;--txt:#1d2430;--muted:#6d7480;--blue:#2b63d9;--blue2:#edf3ff;--green:#0a7a4b}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--txt)}button,input,textarea,select{font:inherit}.app{max-width:1180px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.title{font-size:21px;font-weight:800}.muted{color:var(--muted);font-size:13px}.layout{display:grid;grid-template-columns:270px 1fr;gap:16px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px}.side{padding:12px;align-self:start}.section{width:100%;border:0;background:transparent;text-align:left;padding:11px;border-radius:11px;cursor:pointer;margin:3px 0}.section.active{background:var(--blue2);color:var(--blue)}.section b{display:block}.section small{color:var(--muted)}.chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 2px}.chip{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;cursor:pointer}.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}.main{padding:18px}.crumb{font-size:13px;color:var(--muted);margin-bottom:8px}.head{display:flex;justify-content:space-between;gap:10px;align-items:center}.qid{font-size:25px;font-weight:850}.ans{background:#eef8f2;color:var(--green);border-radius:999px;padding:7px 11px;font-weight:750}.card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}.label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}.prompt{font-size:18px;font-weight:700;line-height:1.65}.thai{color:#596170;line-height:1.6;margin-top:5px}.audio{width:100%;margin-top:8px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;min-height:42px;cursor:pointer}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.danger{color:#b42318}.speed.on{background:var(--blue2);color:var(--blue);border-color:#a8bde9}.toggle{width:100%;border:0;background:#fff;text-align:left;font-weight:800;padding:2px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center}.toggle .arrow{transition:transform .18s ease}.toggle.open .arrow{transform:rotate(180deg)}.hidden{display:none!important}.script{white-space:pre-wrap;line-height:1.75}
+.pairlist{display:flex;flex-direction:column;gap:8px;margin-top:10px}.pairlist.hidden{display:none!important}#ex.hidden{display:none!important}
+.pairrow{border-top:1px dashed var(--line);padding:10px 0}
+.pairrow:first-child{border-top:0}
+.pairhead{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.speaker{font-weight:850;color:var(--blue);min-width:28px}
+.sentno{font-size:11px;color:var(--muted)}
+.pairja{line-height:1.65}
+.pairth{line-height:1.6;color:#596170;margin-top:4px}
+.editline{display:grid;grid-template-columns:82px minmax(0,1fr);gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.editline:first-child{border-top:0}
+.editline textarea{min-height:72px}
+.editpair{display:grid;grid-template-columns:1fr;gap:8px}
+.editpair .mini{font-size:11px;font-weight:750;color:var(--muted);margin-bottom:3px}
+.editwrap{display:none}.editing .editwrap{display:block}.editing .view{display:none}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:5px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.field textarea{min-height:120px;resize:vertical}.actions{margin-top:14px}.nav{display:flex;gap:10px;margin-top:16px}.nav button{flex:1}.empty{text-align:center;padding:42px;color:var(--muted)}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.app{padding:10px}.main{padding:14px}.sectionlist{display:flex;overflow:auto;gap:6px}.section{min-width:145px}.qid{font-size:21px}.top{align-items:flex-start;flex-direction:column}}
+
+.choicegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.choice{border:1px solid var(--line);border-radius:12px;padding:14px;min-height:66px;display:flex;gap:10px;align-items:flex-start;background:#fff}
+.choiceNo{font-weight:850;color:var(--blue);min-width:24px}
+.choiceText{line-height:1.55;white-space:pre-wrap}
+.choice.empty .choiceText{color:var(--muted)}
+.choiceedit{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:start;margin:8px 0}
+.choiceedit .num{font-weight:850;color:var(--blue);padding-top:11px;text-align:center}
+.choiceedit textarea{min-height:64px}
+@media(max-width:620px){.choicegrid{grid-template-columns:1fr}}
+
+.saveStatus{font-size:12px;padding:7px 10px;border-radius:999px;background:#f2f4f7;color:#667085;white-space:nowrap}
+.saveStatus.dirty{background:#fff7e6;color:#9a6700}
+.saveStatus.saved{background:#eef8f2;color:#087443}
+.saveStatus.error{background:#fff0f0;color:#b42318}
+@media(max-width:760px){.top{align-items:flex-start}.top>.row{width:100%}.saveStatus{order:-1;width:100%;text-align:center}}
+
+.subq{border-top:1px dashed var(--line);padding-top:14px;margin-top:14px}
+.subq:first-child{border-top:0;padding-top:0;margin-top:0}
+.subqtitle{font-weight:800;margin-bottom:8px}
+.subqprompt{line-height:1.6;margin-bottom:9px}
+.multiEdit{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px}
+.multiEdit:first-child{border-top:0;padding-top:0;margin-top:0}
+
+/* iPad standalone / touch */
+html,body{overscroll-behavior-y:none}
+button,.btn,.chip,.section,.toggle,input,textarea,select{font-size:16px}
+button,.btn,.chip,.section,.toggle{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){
+  .btn,.chip,.section,.toggle{min-height:46px}
+  .chip{min-width:46px}
+}
+@media (min-width:768px) and (max-width:1194px){
+  .app{max-width:none;padding:16px}
+  .layout{grid-template-columns:250px minmax(0,1fr);gap:14px}
+  .main{padding:18px}
+  .top{gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .top>.row{gap:8px;flex-wrap:wrap}
+  .choice{min-height:76px}
+}
+@media (max-width:820px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:static}
+  .section-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+}
+.installTip{margin:0 0 14px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:#f8fafc;font-size:13px;line-height:1.6}
+.installTip b{display:block;margin-bottom:2px}
+.offlineBadge{font-size:12px;padding:7px 10px;border-radius:999px;background:#eef8f2;color:#087443;white-space:nowrap}
+
+
+ruby{ruby-position:over}rt{font-size:.58em;color:#6d7480;font-weight:500}
+.furiBtn.on{background:var(--blue2);color:var(--blue);border-color:#a8bde9}
+
+.rubyFixBtn{font-size:12px;padding:5px 8px;margin-left:8px}
+.rubyFixPanel{margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fafbfe}
+.rubyFixRow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:6px 0}
+.rubyFixRow input{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px}
+
+.sessionBox{padding:6px 8px 12px}.sessionBox select{width:100%;margin-top:7px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:white;font-size:14px}
+.questionImageWrap{margin:8px 0 16px;text-align:center}.questionImage{max-width:100%;max-height:560px;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:zoom-in}.questionImageHint{font-size:12px;color:var(--muted);margin-top:5px}
+@media(max-width:800px){.questionImage{max-height:none}}
+
+/* v0.12.8 display settings */
+:root{--study-font-size:18px;--choice-font-size:17px;--thai-font-size:16px;--ruby-scale:.58;--study-line-height:1.75}
+.script,.pairtext,.prompt{font-size:var(--study-font-size)!important;line-height:var(--study-line-height)!important}
+.choice,.choicegrid{font-size:var(--choice-font-size)!important}
+.thai,#th{font-size:var(--thai-font-size)!important;line-height:var(--study-line-height)!important}
+rt{font-size:calc(var(--ruby-scale) * 1em)!important}
+body.font-system{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body.font-gothic{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif}
+body.font-mincho{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+body.font-kyokasho{font-family:"UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","Yu Kyokasho","ヒラギノ丸ゴ ProN",sans-serif}
+.displaySettings{position:fixed;inset:0;background:rgba(20,27,40,.28);z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;padding:76px 18px 18px}
+.displaySettings.hidden{display:none!important}.displaySettingsPanel{width:min(430px,calc(100vw - 24px));max-height:calc(100vh - 95px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.displaySettingsPanel h3{margin:0 0 4px}.displaySettingRow{margin:14px 0}.displaySettingRow label{display:flex;justify-content:space-between;font-size:13px;font-weight:750;margin-bottom:6px}.displaySettingRow input[type=range],.displaySettingRow select{width:100%}.displaySettingActions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+@media(max-width:760px){.displaySettings{padding:70px 10px 10px;align-items:flex-start}.displaySettingsPanel{width:100%}}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2455b3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JLPT Studio">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+</head><body>
+<div class="app"><div class="top"><div><div class="title">JLPT Studio v0.12.8-LOCAL</div><div class="muted">iPad単体・オフライン対応 PWA</div></div><div class="row"><span id="offlineBadge" class="offlineBadge">iPad単体</span><span id="saveStatus" class="saveStatus">● 読み込み中</span><button class="btn" id="displaySettingsBtn">表示設定 ⚙︎</button><button class="btn" id="manualSave">保存</button><button class="btn" id="backup">JSONバックアップ</button><button class="btn" id="export">JSON書き出し</button><label class="btn">JSON読み込み<input id="import" type="file" accept=".json" hidden></label></div></div>
+
+<div id="displaySettings" class="displaySettings hidden" aria-hidden="true"><div class="displaySettingsPanel" role="dialog" aria-modal="true" aria-label="表示設定">
+<h3>表示設定</h3><div class="muted">この設定は2024年・2026年を含む全教材に共通で保存されます。</div>
+<div class="displaySettingRow"><label><span>フォント</span></label><select id="dsFont"><option value="system">システム標準</option><option value="gothic">ゴシック体</option><option value="mincho">明朝体</option><option value="kyokasho">教科書体</option></select></div>
+<div class="displaySettingRow"><label><span>本文</span><span id="dsTextVal"></span></label><input id="dsText" type="range" min="14" max="30" step="1"></div>
+<div class="displaySettingRow"><label><span>選択肢</span><span id="dsChoiceVal"></span></label><input id="dsChoice" type="range" min="14" max="28" step="1"></div>
+<div class="displaySettingRow"><label><span>タイ語訳</span><span id="dsThaiVal"></span></label><input id="dsThai" type="range" min="13" max="28" step="1"></div>
+<div class="displaySettingRow"><label><span>ルビ</span><span id="dsRubyVal"></span></label><input id="dsRuby" type="range" min="45" max="90" step="5"></div>
+<div class="displaySettingRow"><label><span>行間</span><span id="dsLineVal"></span></label><input id="dsLine" type="range" min="140" max="220" step="5"></div>
+<div class="displaySettingActions"><button class="btn" id="dsReset">標準に戻す</button><button class="btn primary" id="dsClose">閉じる</button></div>
+</div></div>
+<div class="installTip">
+<b>iPad単体版</b>
+ホーム画面に追加した後は、MacやPythonなしで起動できます。教材データと編集内容はこのiPad内に保存されます。
+</div>
+<div class="layout"><aside class="panel side"><div class="sessionBox"><b id="sessionTitle">N2・2024年12月</b><div class="muted">聴解</div><select id="sessionSelect" aria-label="試験回"><option value="2024-12" selected>2024年12月</option><option value="2026-07">2026年7月</option></select></div><div id="sectionList" class="sectionlist"></div><div id="chips" class="chips"></div></aside>
+<main id="main" class="panel main"><div id="empty" class="empty hidden">この大題はまだ未登録です。今後ここに小問を追加します。</div><div id="content"><div id="crumb" class="crumb"></div><div class="head"><div id="qid" class="qid"></div></div>
+<div id="p3ChoiceControl" class="card view hidden">
+  <button id="toggleP3Choices" class="toggle" type="button">
+    <span id="toggleP3Label">選択肢を確認する</span><span class="arrow">▼</span>
+  </button>
+  <div class="muted" style="margin-top:8px">問題3・問題4では、本試験中は選択肢が印刷されていません。必要なときだけ表示し、もう一度押すと隠せます。</div>
+</div>
+<div id="choiceCard" class="card view">
+  <div class="label">選択肢</div>
+  <div id="questionImageWrap" class="questionImageWrap hidden"><img id="questionImage" class="questionImage" alt="問題図"><div class="questionImageHint">画像をクリックすると原寸で開きます</div></div>
+  <div id="choiceGrid" class="choicegrid"></div>
+</div>
+<div class="card view"><div class="label">音声</div><audio id="audio" class="audio" controls preload="metadata"></audio><div class="row" style="margin-top:9px"><button class="btn speed" data-speed=".8">0.8×</button><button class="btn speed on" data-speed="1">1.0×</button><button class="btn speed" data-speed="1.2">1.2×</button><button class="btn" id="back">−10秒</button><button class="btn" id="forward">+10秒</button></div></div>
+<div class="card view"><div class="row"><button class="toggle" data-target="jp" type="button" style="flex:1"><span>聴解原文</span><span class="arrow">▼</span></button><button id="furiganaToggle" class="btn furiBtn" type="button">ふりがな OFF</button></div><div id="jp" class="pairlist hidden"></div></div>
+<div class="card view"><button class="toggle" data-target="th" type="button"><span>タイ語訳</span><span class="arrow">▼</span></button><div id="th" class="pairlist hidden"></div></div>
+<div class="card view"><button class="toggle" data-target="ex" type="button"><span>正解・解説</span><span class="arrow">▼</span></button><div id="ex" class="hidden"><div id="answerInside" class="ans" style="display:inline-block;margin:10px 0 12px"></div><div id="explain" class="script"></div><div id="keywords" class="muted" style="margin-top:10px"></div></div></div>
+<div class="row actions view"><button id="edit" class="btn primary">✎ この小問を編集</button><button id="dup" class="btn">複製</button><button id="del" class="btn danger">削除</button></div>
+<div class="editwrap">
+<div class="card">
+  <div class="field"><label>表示名</label><input id="eId"></div>
+  <div class="field"><label>正解</label><input id="eAns"></div>
+  <div class="field"><label>聴解の設問文（日本語・管理用）</label><textarea id="ePrompt"></textarea></div>
+  <div class="field"><label>聴解の設問文（タイ語・管理用）</label><textarea id="ePromptTh"></textarea></div>
+  <div id="singleChoiceEditor">
+    <div class="label" style="margin-top:16px">試験画面に表示する選択肢</div>
+    <div class="muted" style="margin-bottom:8px">通常の小問はこちらを編集します。</div>
+    <div class="choiceedit"><div class="num">1</div><textarea id="eChoice1" placeholder="選択肢1"></textarea></div>
+    <div class="choiceedit"><div class="num">2</div><textarea id="eChoice2" placeholder="選択肢2"></textarea></div>
+    <div class="choiceedit"><div class="num">3</div><textarea id="eChoice3" placeholder="選択肢3"></textarea></div>
+    <div class="choiceedit"><div class="num">4</div><textarea id="eChoice4" placeholder="選択肢4"></textarea></div>
+  </div>
+  <div id="multiChoiceEditor" class="hidden">
+    <div class="label" style="margin-top:16px">複数質問の編集</div>
+    <div class="muted" style="margin-bottom:8px">問題5-2のように、1つの音声に複数の質問がある場合はこちらで個別に編集します。</div>
+    <div id="subQuestionEditors"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="label">聴解原文・タイ語訳（1文ずつ対応）</div>
+  <div class="muted" style="margin-bottom:8px">1文ごとに「話者 / 日本語 / タイ語」をセットで編集します。修正したい文だけ直せます。</div>
+  <div id="sentenceEditor"></div>
+  <button id="addSentence" class="btn" type="button">＋ 1文を追加</button>
+</div>
+<div class="card">
+  <div class="field"><label>解説</label><textarea id="eEx"></textarea></div>
+  <div class="field"><label>キーワード</label><input id="eKw"></div>
+  <div class="field"><label>音声差し替え</label><input id="eAudio" type="file" accept="audio/*"><div class="muted">差し替え音声はこのブラウザの作業中のみ有効です。</div></div>
+</div>
+<div class="row" style="margin-top:12px"><button id="save" class="btn primary">保存</button><button id="cancel" class="btn">キャンセル</button></div>
+</div>
+<div class="nav view"><button id="prev" class="btn">← 前の小問</button><button id="next" class="btn primary">次の小問 →</button></div></div></main></div></div>
+<script>
+const baseData={sections:[
+{id:'p1',label:'問題1',name:'課題理解',status:'5問登録済み'},{id:'p2',label:'問題2',name:'ポイント理解',status:'6問登録済み'},{id:'p3',label:'問題3',name:'概要理解',status:'5問登録済み'},{id:'p4',label:'問題4',name:'即時応答',status:'11問登録済み'},{id:'p5',label:'問題5',name:'統合理解',status:'未登録'}],questions:[
+{id:'問題1-1',section:'p1',no:1,choices:['グラスを受け取りに行く','メッセージカードをじゅんびする','料理を予約する','スピーチをいらいする'],answer:'2',audio:'P1Q01.mp3',prompt:'会社で男の人と女の人が話しています。女の人はこの後まず何をしますか？',promptTh:'ผู้ชายกับผู้หญิงกำลังคุยกันที่บริษัท หลังจากนี้ผู้หญิงจะทำอะไรก่อน?',jp:`N：会社で男の人と女の人が話しています。女の人はこの後まず何をしますか？\nM：ね、来月の中川部長の退職パーティーの準備の件なんだけど、プレゼントは部長の名前を入れたグラスを隣町の工場にお願いしたんだ。２週間から３週間はかかるみたいで、出来上がったら受け取りに行ってほしいんだ。\nF：うん、任せて。\nM：あと営業部のみんなから感謝のメッセージを集めるのにとりあえずカードを準備してくれないかな？花束は当日まで僕が準備するから。\nF：わかった。\nM：ありがとう。料理の予約もまだなんだけど、それは来週あたり出席者がはっきりしてからのほうがいいかと思って。食べられないものがあるかもしれないしね。\nF：そうだね。あとスピーチを頼むって話になってたけど、どうなってる？\nM：あ、それは是非俺がって小林課長が言ってて。\nF：それはよかった。\n\nN：女の人はこの後まず何をしますか？`,th:`N：ผู้ชายกับผู้หญิงกำลังคุยกันที่บริษัท หลังจากนี้ผู้หญิงจะทำอะไรก่อน?\nM：เรื่องการเตรียมงานเลี้ยงเกษียณของหัวหน้าแผนกนากากาวะเดือนหน้าน่ะ ของขวัญฉันสั่งแก้วที่ใส่ชื่อหัวหน้าไว้กับโรงงานในเมืองข้าง ๆ แล้ว เห็นว่าจะใช้เวลา 2–3 สัปดาห์ พอเสร็จแล้วอยากให้เธอไปรับให้หน่อย\nF：ได้เลย ฝากไว้กับฉันได้เลย\nM：แล้วก็เพื่อรวบรวมข้อความขอบคุณจากทุกคนในฝ่ายขาย ช่วยเตรียมการ์ดไว้ก่อนให้หน่อยได้ไหม ส่วนช่อดอกไม้ฉันจะเตรียมเองก่อนถึงวันงาน\nF：เข้าใจแล้ว\nM：ขอบคุณนะ ส่วนการจองอาหารยังไม่ได้ทำ คิดว่ารอประมาณสัปดาห์หน้าให้รู้ผู้เข้าร่วมแน่นอนก่อนดีกว่า เพราะอาจมีคนที่กินอาหารบางอย่างไม่ได้\nF：จริงด้วย แล้วเรื่องที่จะขอให้ใครกล่าวสุนทรพจน์ล่ะ เป็นอย่างไรบ้าง?\nM：อ๋อ เรื่องนั้น หัวหน้าแผนกโคบายาชิบอกว่าอยากเป็นคนพูดเอง\nF：ดีเลย\n\nN：หลังจากนี้ผู้หญิงจะทำอะไรก่อน?`,ex:'「まず」がポイントです。プレゼントの受け取りは2〜3週間後、料理の予約は来週以降です。まず行うのは感謝のメッセージを集めるためのカードの準備です。',kw:'まず／2週間から3週間／出来上がったら／とりあえず／来週あたり'},
+{id:'問題1-2',section:'p1',no:2,choices:['細かいスケジュールを作成する','旅行に行く日を決める','交通手段を決めて予約する','しゅくはく先を予約する'],answer:'3',audio:'P1Q02.mp3',prompt:'男の学生と先生が話しています。男の学生は何をしなければなりませんか？',promptTh:'นักศึกษาชายกับอาจารย์กำลังคุยกัน นักศึกษาชายต้องทำอะไร?',jp:`N：男の学生と先生が話しています。男の学生は何をしなければなりませんか？\nM：先生、来月の東高原へのゼミ旅行の計画案なんですけど、見ていただけましたか？\nF：ええ、見ましたよ。研究の発表の順番とか到着してからの細かいスケジュールを組む必要がありそうだけど、来週のゼミの日にみんなで話し合いましょう。\nM：わかりました。\nF：それで日にちは来月第３週の週末になったんですね。\nM：みんな行けるのはこの週末しかなくて。\nF：ちょうどもみじの季節で観光シーズンだから貸切バスとはどこと早くいっぱいになっちゃいますよね。往復の交通手段は大急ぎで押えとかないといけませんね。\nM：そうですね。\nF：あと宿泊先も急いで予約しないと。\nM：あ、それなんですけど、実は叔父が東高原で民宿やってるんですが、その週末、格安で泊まらせてくれるって言ってるんです。大部屋もありますのでみんなで勉強できますし。\nF：それはありがたいですね。\n\nN：男の学生は何をしなければなりませんか？`,th:`N：นักศึกษาชายกับอาจารย์กำลังคุยกัน นักศึกษาชายต้องทำอะไร?\nM：อาจารย์ครับ แผนทริปสัมมนาไปฮิงาชิโคเก็นเดือนหน้า ได้ดูหรือยังครับ?\nF：ดูแล้วค่ะ ลำดับการนำเสนองานวิจัยและตารางละเอียดหลังจากไปถึงน่าจะต้องจัด แต่ไว้คุยกับทุกคนในวันสัมมนาสัปดาห์หน้ากันนะ\nM：เข้าใจแล้วครับ\nF：แล้ววันเดินทางเป็นสุดสัปดาห์ของสัปดาห์ที่สามเดือนหน้าใช่ไหม\nM：ทุกคนไปได้แค่สุดสัปดาห์นั้นครับ\nF：พอดีเป็นช่วงใบไม้แดงและฤดูท่องเที่ยว รถบัสเช่าเหมาน่าจะเต็มเร็ว ต้องรีบจองการเดินทางไปกลับไว้ก่อนนะ\nM：จริงครับ\nF：แล้วก็ต้องรีบจองที่พักด้วย\nM：เรื่องนั้น ลุงของผมทำมินชุกอยู่ที่ฮิงาชิโคเก็น เขาบอกว่าให้พวกเราพักราคาถูกได้ และมีห้องใหญ่ให้ทุกคนเรียนด้วยกันได้ครับ\nF：แบบนั้นช่วยได้มากเลยค่ะ\n\nN：นักศึกษาชายต้องทำอะไร?`,ex:'来週話し合う内容や宿泊先ではなく、今すぐ急いで押さえる必要がある往復の交通手段がポイントです。',kw:'来週話し合う／大急ぎで押える／往復の交通手段／宿泊先'},
+{id:'問題1-3',section:'p1',no:3,choices:['母国の楽器をしょうかいする','母国のあいさつや会話を教える','文化の違いについて話す','制服について話し合う'],answer:'1',audio:'P1Q03.mp3',prompt:'大学で日本語の先生が話しています。交流会で留学生は何をしますか。',promptTh:'อาจารย์ภาษาญี่ปุ่นกำลังพูดที่มหาวิทยาลัย ในงานแลกเปลี่ยนนักเรียนต่างชาติจะทำอะไร?',jp:`N：大学で日本語の先生が話しています。交流会で留学生は何をしますか。\nF：来月、中学校で行う交流会についてお知らせします。先週皆さんにいくつか活動の候補をあげてもらいましたが、自分の国の伝統的な楽器の紹介しましょう。自分の国のあいさつや簡単な会話を教えること、日本と自分の国との文化の違いの紹介、これらも面白いと思います。ただ、以前やったことがあるので今回は違ったことをやりましょう。来週までに紹介する内容を考えておいてください。活動の候補については中学校側とも相談したのですが、制服についての話し合いは見送りにしたいとお願いがありました。\n\nN：交流会で留学生は何をしますか。`,th:`N：อาจารย์ภาษาญี่ปุ่นกำลังพูดที่มหาวิทยาลัย ในงานแลกเปลี่ยนนักเรียนต่างชาติจะทำอะไร?\nF：ขอแจ้งเรื่องงานแลกเปลี่ยนที่จะจัดที่โรงเรียนมัธยมต้นเดือนหน้า สัปดาห์ที่แล้วทุกคนเสนอแนวคิดหลายอย่าง เช่น แนะนำเครื่องดนตรีดั้งเดิมของประเทศตนเอง สอนคำทักทายและบทสนทนาง่าย ๆ หรือแนะนำความแตกต่างทางวัฒนธรรมระหว่างญี่ปุ่นกับประเทศของตน สิ่งเหล่านี้ก็น่าสนใจ แต่เคยทำมาก่อนแล้ว ครั้งนี้จึงมาทำสิ่งที่แตกต่างกัน ขอให้คิดเนื้อหาที่จะแนะนำภายในสัปดาห์หน้า ส่วนการพูดคุยเรื่องเครื่องแบบ ทางโรงเรียนขอให้งดไว้\n\nN：ในงานแลกเปลี่ยนนักเรียนต่างชาติจะทำอะไร?`,ex:'以前行った活動は今回は避け、制服についての話し合いも見送ります。今回実施する活動を選ぶ問題です。',kw:'活動の候補／以前やった／今回は違ったこと／見送り'},
+{id:'問題1-4',section:'p1',no:4,choices:['しげんごみとして出す','燃えないごみとして出す','電気屋に持っていく','かいしゅう箱に入れる'],answer:'4',audio:'P1Q04.mp3',prompt:'男の学生と女の学生が話しています。男の学生はどうやってイヤホンを捨てますか？',promptTh:'นักศึกษาชายกับนักศึกษาหญิงกำลังคุยกัน นักศึกษาชายจะทิ้งหูฟังอย่างไร?',jp:`N：男の学生と女の学生が話しています。男の学生はどうやってイヤホンを捨てますか？\nM：イヤホンが壊れちゃったんだ。\nF：あのコードのないのだよね？\nM：うん、そう。買い換えたから壊れたのはゴミに出すんだけど、資源ごみで出すのかな？それとも燃えないごみでいいのかな？\nF：充電するタイプだからごみに出せないんじゃない？あ、電気屋でも出せるよ。\nM：そう、大学近くの電気屋に持って行こうかな。\nF：えっと、検索してみるね。あそこの店はやってないって。この辺りの地域では市役所とかの公共施設に回収専用の箱が置いてあるみたい。\nM：捨てるのも大変だな。今日持っていくよ。ありがとう。\n\nN：男の学生はどうやってイヤホンを捨てますか？`,th:`N：นักศึกษาชายกับนักศึกษาหญิงกำลังคุยกัน นักศึกษาชายจะทิ้งหูฟังอย่างไร?\nM：หูฟังของฉันเสียแล้ว\nF：อันที่ไม่มีสายนั่นใช่ไหม?\nM：ใช่ ซื้อใหม่แล้วเลยจะทิ้งอันที่เสีย ต้องทิ้งเป็นขยะรีไซเคิลหรือขยะเผาไม่ได้กันนะ?\nF：เพราะเป็นแบบชาร์จไฟได้ น่าจะทิ้งเป็นขยะทั่วไปไม่ได้นะ อ้อ ร้านเครื่องใช้ไฟฟ้าก็รับได้\nM：งั้นจะเอาไปร้านใกล้มหาวิทยาลัยดีไหมนะ\nF：เดี๋ยวค้นดูนะ ร้านนั้นไม่รับ ในพื้นที่นี้ดูเหมือนว่าจะมีกล่องรับคืนเฉพาะที่ศาลากลางหรือสถานที่สาธารณะ\nM：ทิ้งของก็ยุ่งเหมือนกันนะ วันนี้จะเอาไป ขอบคุณ\n\nN：นักศึกษาชายจะทิ้งหูฟังอย่างไร?`,ex:'大学近くの電気屋は回収していません。最終的に公共施設に置かれている回収専用箱へ持っていきます。',kw:'充電するタイプ／電気屋／やってない／公共施設／回収専用の箱'},
+{id:'問題1-5',section:'p1',no:5,choices:['午前と午後の一日２回','午前を二日間','午後を二日間','午前と午後を二日間'],answer:'2',audio:'P1Q05.mp3',prompt:'会社で男の人と女の人が話しています。男の人は会社説明会の会場をどのように予約しなければなりませんか。',promptTh:'ผู้ชายกับผู้หญิงกำลังคุยกันที่บริษัท ผู้ชายต้องจองสถานที่จัดงานแนะนำบริษัทอย่างไร?',jp:`N：会社で男の人と女の人が話しています。男の人は会社説明会の会場をどのように予約しなければなりませんか。\nM：課長、就職を希望する学生向けの会社説明会ですが、いつものホテルが建て替え工事で使えなくなりましたね。会場をどうしましょうか。\nF：あぁ、それなら会社近くの桜ホテルのホールにしましょう。\nM：あの、あそこのホールは説明会を午前１回でやるには少し狭いかと思いますが。\nF：うーん、午前と午後、１日に２回にします？そうすると慌しいですかね？2日に分けるのも手ですね。\nM：ええ。\nF：時間帯はどちらも同じ時間帯にするのはどうですか？確かホールを借りる料金、午後は結構高いですよね？\nM：そうですね。\nF：じゃ、午後は避けてくれませんか？４月中に開催できるように予約をお願いしますね。\nM：はい、早速やっておきます。\n\nN：男の人は会社説明会の会場をどのように予約しなければなりませんか。`,th:`N：ผู้ชายกับผู้หญิงกำลังคุยกันที่บริษัท ผู้ชายต้องจองสถานที่จัดงานแนะนำบริษัทอย่างไร?\nM：หัวหน้าครับ งานแนะนำบริษัทสำหรับนักศึกษาที่ต้องการสมัครงาน โรงแรมที่ใช้ประจำกำลังก่อสร้างใหม่เลยใช้ไม่ได้ จะทำอย่างไรกับสถานที่ดีครับ\nF：ถ้าอย่างนั้นใช้ฮอลล์ของโรงแรมซากุระใกล้บริษัทกัน\nM：แต่ฮอลล์ที่นั่นถ้าจัดรอบเดียวตอนเช้าอาจจะแคบไปหน่อยครับ\nF：อืม จัดวันละสองรอบ เช้าและบ่ายดีไหม? แบบนั้นจะรีบเกินไปหรือเปล่า แบ่งเป็นสองวันก็เป็นทางเลือกนะ\nM：ครับ\nF：ถ้าใช้ช่วงเวลาเดียวกันทั้งสองวันล่ะ? ค่าเช่าฮอลล์ช่วงบ่ายค่อนข้างแพงใช่ไหม\nM：ใช่ครับ\nF：งั้นช่วยหลีกเลี่ยงช่วงบ่าย และจองให้สามารถจัดได้ภายในเดือนเมษายนนะ\nM：ครับ จะดำเนินการทันที\n\nN：ผู้ชายต้องจองสถานที่จัดงานแนะนำบริษัทอย่างไร?`,ex:'午後は避け、同じ時間帯で2日に分け、4月中に開催できるように予約するという流れです。',kw:'1日に2回／2日に分ける／同じ時間帯／午後は避ける／4月中'}
+,{id:'問題2-1',section:'p2',no:1,choices:['つりの番組を見たこと','そふがつりを教えてくれたこと','つりの雑誌を読んだこと','友人につりをすすめられたこと'],answer:'1',audio:'P2Q01.mp3',
+prompt:'テレビで男のアナウンサーが女のタレントにインタビューしています。女のタレントは釣りを始めたきっかけは何だったと言っていますか？',
+promptTh:'พิธีกรชายทางโทรทัศน์กำลังสัมภาษณ์ดาราหญิง ดาราหญิงบอกว่าอะไรเป็นจุดเริ่มต้นที่ทำให้เธอเริ่มตกปลา?',
+jp:`N：テレビで男のアナウンサーが女のタレントにインタビューしています。女のタレントは釣りを始めたきっかけは何だったと言っていますか？
+M：太田さんはどなたかの影響で釣りを始められたのですか？
+F：何か外でできる趣味を探していた時にたまたま釣りの番組を見たんです。
+M：ええ。
+F：そこで出ていた方が小さい港で岸の上からアジやイワシを釣ってたんですが、その姿がすごく生き生きしていて私も釣りがしたいって思ったのが始まりです。私が幼い頃に祖父が釣り好きだったんですが、魚を釣ってよく持ってきてくれたことも思い出しました。
+M：そうですか。
+F：以前は自分で釣りをしたことがなくて、初めは初心者向けの道具やどんな場所がいいかも分からなかったんですけど、本屋で釣りの雑誌を見つけて、いい釣り道具のお店も分かりました。最近では友人に一緒に釣りをしようと勧めています。
+N：女のタレントは釣りを始めたきっかけは何だったと言っていますか？`,
+th:`N：พิธีกรชายทางโทรทัศน์กำลังสัมภาษณ์ดาราหญิง ดาราหญิงบอกว่าอะไรเป็นจุดเริ่มต้นที่ทำให้เธอเริ่มตกปลา?
+M：คุณโอตะเริ่มตกปลาเพราะได้รับอิทธิพลจากใครหรือเปล่าครับ?
+F：ตอนที่กำลังหางานอดิเรกที่ทำกลางแจ้งได้ บังเอิญเห็นรายการตกปลาค่ะ
+M：ครับ
+F：ในรายการมีคนตกปลาซาบะกับปลาซาร์ดีนจากฝั่งที่ท่าเรือเล็ก ๆ ท่าทางของเขาดูมีชีวิตชีวามาก ฉันเลยคิดว่าอยากตกปลาบ้าง นั่นคือจุดเริ่มต้นค่ะ แล้วก็นึกขึ้นได้ว่าตอนเด็ก ๆ คุณปู่ชอบตกปลาและมักเอาปลาที่ตกได้มาให้
+M：อย่างนั้นหรือครับ
+F：ก่อนหน้านั้นฉันไม่เคยตกปลาเองเลย ตอนแรกก็ไม่รู้ว่าอุปกรณ์สำหรับมือใหม่ควรเป็นแบบไหนหรือควรไปตกที่ไหน แต่ไปเจอนิตยสารตกปลาที่ร้านหนังสือ เลยได้รู้จักร้านขายอุปกรณ์ดี ๆ ช่วงนี้ฉันยังชวนเพื่อนให้ไปตกปลาด้วยกันด้วยค่ะ
+N：ดาราหญิงบอกว่าอะไรเป็นจุดเริ่มต้นที่ทำให้เธอเริ่มตกปลา?`,
+ex:'外でできる趣味を探していた時に、たまたま釣り番組を見て、出演者が生き生きと釣りをする姿を見たことが直接のきっかけです。',
+kw:'外でできる趣味／たまたま釣りの番組／生き生きしていて／始まり'}
+
+,{id:'問題2-2',section:'p2',no:2,choices:['おくの歯が虫歯になったから','おくの歯がななめに生えているから','おくの歯のまわりにきんが入ったから','上下の歯の位置が合ってないから'],answer:'3',audio:'P2Q02.mp3',
+prompt:'歯医者で男の先生と女の人が話しています。男の先生は痛みの原因は何だと言っていますか？',
+promptTh:'ที่คลินิกทันตกรรม ทันตแพทย์ชายกำลังคุยกับผู้หญิง หมอบอกว่าสาเหตุของอาการปวดคืออะไร?',
+jp:`N：歯医者で男の先生と女の人が話しています。男の先生は痛みの原因は何だと言っていますか？
+M：村上さん、検査終わりました。奥の歯が痛むということで虫歯を疑ったんですが、結果的に虫歯は見つかりませんでした。
+F：あ、そうなんですか？痛いんですけどね。
+M：たまに奥の歯が斜めに生えて隣の歯を刺激することで痛みが出る人もいるんですが、村上さんの場合は奥にある歯の周りに菌が入って腫れていますね。そこから痛みが来ていますから、今日は消毒をしますね。
+F：そうなんですね。
+M：噛んだ時に上と下の歯の位置が正しく合わないと痛みにつながることもあるので、念のためこちらも確認しましたが特に異常見当たりませんでしたよ。
+N：男の先生は痛みの原因は何だと言っていますか？`,
+th:`N：ที่คลินิกทันตกรรม ทันตแพทย์ชายกำลังคุยกับผู้หญิง หมอบอกว่าสาเหตุของอาการปวดคืออะไร?
+M：คุณมูราคามิ ตรวจเสร็จแล้วครับ เนื่องจากคุณปวดฟันด้านใน เราสงสัยว่าเป็นฟันผุ แต่ผลตรวจไม่พบฟันผุครับ
+F：อ้าว อย่างนั้นเหรอคะ แต่ก็ปวดอยู่นะคะ
+M：บางคนปวดเพราะฟันด้านในขึ้นเอียงไปกระตุ้นฟันข้าง ๆ แต่กรณีของคุณมูราคามิ มีเชื้อโรคเข้าไปรอบฟันด้านในจนเกิดอาการบวมครับ อาการปวดมาจากตรงนั้น วันนี้จะฆ่าเชื้อให้นะครับ
+F：อย่างนี้นี่เอง
+M：ถ้าตำแหน่งฟันบนกับล่างสบกันไม่ถูกต้องตอนกัด ก็อาจทำให้ปวดได้ เลยตรวจเผื่อไว้ด้วย แต่ไม่พบความผิดปกติครับ
+N：หมอบอกว่าสาเหตุของอาการปวดคืออะไร?`,
+ex:'虫歯や噛み合わせではなく、奥の歯の周りに菌が入って腫れていることが痛みの原因です。',
+kw:'虫歯は見つからない／菌が入る／腫れている／そこから痛み'}
+
+,{id:'問題2-3',section:'p2',no:3,choices:['けがをしないようにすること','相手に点を入れさせないこと','選手たちが笑顔になること','ファンをよろこばせること'],answer:'2',audio:'P2Q03.mp3',
+prompt:'競技場でアナウンサーがサッカーの監督にインタビューしています。監督は来シーズンの課題は何だと言っていますか？',
+promptTh:'ที่สนามกีฬา ผู้ประกาศกำลังสัมภาษณ์โค้ชฟุตบอล โค้ชบอกว่าประเด็นที่ต้องแก้ในฤดูกาลหน้าคืออะไร?',
+jp:`N：競技場でアナウンサーがサッカーの監督にインタビューしています。監督は来シーズンの課題は何だと言っていますか？
+F：監督、お疲れ様でした。今シーズンは準優勝でしたね。お気持ちをどうぞ。
+M：本当にあと一歩だったので残念です。やっぱりシーズン最後にけが人が増えてしまったのが悔しいです。それはもちろん僕の責任ですけど。
+F：そうですか。来シーズンに向けてはいかがですか？
+M：そうですね。改善しないといけない点は相手に得点させないことですね。やっぱりこのシーズン、ひやひやすることも多かったんで。これが何とかしないといけない課題です。
+F：ええ、今シーズンは笑顔になるっていう目標だったと思うんですが。
+M：そうですね。2位になったということはつまり、勝った回数が多かったということです。その分、笑顔になれたとは思います。
+F：ファンの皆さんに一言。
+M：今シーズン、ずっと応援が盛り上がっていて、ありがたかったです。皆さんはチームの一員です。来年は一緒に優勝しましょう。本当に1年間、どうもありがとうございました。
+N：監督は来シーズンの課題は何だと言っていますか？`,
+th:`N：ที่สนามกีฬา ผู้ประกาศกำลังสัมภาษณ์โค้ชฟุตบอล โค้ชบอกว่าประเด็นที่ต้องแก้ในฤดูกาลหน้าคืออะไร?
+F：โค้ชคะ เหนื่อยมากนะคะ ฤดูกาลนี้ได้รองแชมป์ รู้สึกอย่างไรบ้างคะ?
+M：เสียดายครับ เพราะขาดอีกนิดเดียว โดยเฉพาะช่วงท้ายฤดูกาลมีผู้เล่นบาดเจ็บเพิ่มขึ้น ซึ่งแน่นอนว่าเป็นความรับผิดชอบของผมด้วย
+F：แล้วสำหรับฤดูกาลหน้าล่ะคะ?
+M：สิ่งที่ต้องปรับปรุงคือไม่ให้ฝ่ายตรงข้ามทำประตูครับ ฤดูกาลนี้มีหลายครั้งที่ลุ้นจนใจหาย เรื่องนี้เป็นสิ่งที่ต้องแก้ให้ได้
+F：เป้าหมายฤดูกาลนี้คือการทำให้ทุกคนยิ้มได้ใช่ไหมคะ
+M：ใช่ครับ การได้อันดับสองหมายความว่าเราชนะหลายครั้ง ดังนั้นก็คงมีโอกาสยิ้มกันมากขึ้น
+F：ฝากข้อความถึงแฟน ๆ หน่อยค่ะ
+M：ตลอดฤดูกาลนี้ทุกคนเชียร์กันอย่างคึกคัก ขอบคุณมากครับ ทุกคนเป็นส่วนหนึ่งของทีม ปีหน้ามาคว้าแชมป์ด้วยกันนะครับ ขอบคุณตลอดหนึ่งปีจริง ๆ
+N：โค้ชบอกว่าประเด็นที่ต้องแก้ในฤดูกาลหน้าคืออะไร?`,
+ex:'監督は「相手に得点させないこと」を、来シーズンに改善すべき課題として明確に挙げています。',
+kw:'来シーズン／改善しないといけない／相手に得点させない／課題'}
+
+,{id:'問題2-4',section:'p2',no:4,choices:['あおば機械でのプレゼン','あおば機械の人との昼食','きかく部とのウェブ会議','南支店との打ち合わせ'],answer:'3',audio:'P2Q04.mp3',
+prompt:'会社で女の人と男の人が話しています。男の人は講師を引き受けるために、どの予定を変更しますか？',
+promptTh:'ที่บริษัท ผู้หญิงกับผู้ชายกำลังคุยกัน ผู้ชายจะเปลี่ยนกำหนดการใดเพื่อรับหน้าที่เป็นวิทยากร?',
+jp:`N：会社で女の人と男の人が話しています。男の人は講師を引き受けるために、どの予定を変更しますか？
+F：山下さん、来月の10日のキャリアアップ研修、山下さんに講師をお願いしたいんですが、時間は1時間ぐらいです。
+M：部長、10日はあいにく午前も午後も予定が入っていまして。
+F：そうですか。どんな予定ですか？
+M：午前はあおば機械で新商品のプレゼンがあります。昼食を用意していただけるとのことです。午後1時頃、こちらに戻ってきます。私が担当者なので離せません。
+F：そうですか。今後のお付き合いがあるから昼食をご一緒しないわけにはいかないですよね。
+M：ええ。午後は1時半からウェブで企画部の会議です。その後、南支店の新人の村野さんと営業の打ち合わせがあります。新人さんとは顔合わせしとかないといけないので。
+F：うーん、午後も予定が詰まってますね。
+M：ええ、そうですね。1時半からのミーティングなら西田さんに代わってもらうことも可能です。
+F：そうですか。そうしてもらえますか？その時間に山下さんが研修に講師として参加するって私が人事に連絡しておきます。
+M：よろしくお願いします。
+N：男の人は講師を引き受けるため、どの予定を変更しますか？`,
+th:`N：ที่บริษัท ผู้หญิงกับผู้ชายกำลังคุยกัน ผู้ชายจะเปลี่ยนกำหนดการใดเพื่อรับหน้าที่เป็นวิทยากร?
+F：คุณยามาชิตะ การอบรมพัฒนาทักษะวันที่ 10 เดือนหน้า อยากขอให้คุณเป็นวิทยากร ใช้เวลาประมาณหนึ่งชั่วโมงค่ะ
+M：หัวหน้าครับ วันที่ 10 ทั้งช่วงเช้าและบ่ายผมมีนัดอยู่แล้วครับ
+F：อย่างนั้นหรือ มีนัดอะไรบ้าง?
+M：ตอนเช้ามีพรีเซนต์สินค้าใหม่ที่บริษัทอาโอบะเครื่องจักร เขาจะเตรียมอาหารกลางวันให้ด้วย ผมน่าจะกลับมาที่นี่ประมาณบ่ายโมง และผมเป็นผู้รับผิดชอบงานนี้เลยออกไม่ได้ครับ
+F：เข้าใจค่ะ เพราะยังต้องติดต่อกันต่อไป คงปฏิเสธอาหารกลางวันไม่ได้สินะ
+M：ครับ ช่วงบ่ายมีประชุมออนไลน์กับฝ่ายวางแผนตอนบ่ายโมงครึ่ง หลังจากนั้นมีประชุมงานขายกับคุณมูราโนะ พนักงานใหม่ที่สาขามินามิ จำเป็นต้องพบหน้ากันด้วยครับ
+F：ช่วงบ่ายก็แน่นเหมือนกันนะ
+M：ครับ แต่ประชุมตอนบ่ายโมงครึ่ง ถ้าเป็นอันนั้นอาจขอให้คุณนิชิดะแทนได้ครับ
+F：อย่างนั้นหรือ งั้นช่วยทำแบบนั้นได้ไหม? ฉันจะติดต่อฝ่ายบุคคลว่าคุณยามาชิตะจะเข้าร่วมการอบรมในฐานะวิทยากรช่วงเวลานั้น
+M：ฝากด้วยครับ
+N：ผู้ชายจะเปลี่ยนกำหนดการใดเพื่อรับหน้าที่เป็นวิทยากร?`,
+ex:'変更するのは午後1時半からの企画部のウェブ会議です。西田さんに代わってもらい、その時間に研修講師を担当します。',
+kw:'1時半／企画部の会議／西田さんに代わってもらう／その時間'}
+
+,{id:'問題2-5',section:'p2',no:5,choices:['作っているのうさん物が多様なこと','のうえんの一部を貸し出していること','ひなん場所をていきょうしていること','子どもがのうさん物について学ぶ場があること'],answer:'2',audio:'P2Q05.mp3',
+prompt:'テレビで男のアナウンサーが農家の人にインタビューしています。農家の人は山川市の農家の1番の特徴は何だと言っていますか？',
+promptTh:'พิธีกรชายทางโทรทัศน์กำลังสัมภาษณ์เกษตรกร เกษตรกรบอกว่าจุดเด่นที่สุดของเกษตรกรในเมืองยามาคาวะคืออะไร?',
+jp:`N：テレビで男のアナウンサーが農家の人にインタビューしています。農家の人は山川市の農家の1番の特徴は何だと言っていますか？
+M：都心に近い山川市には実は農家も多いんだそうですね。
+F：ええ。多種多様な農産物を少量ずつ生産して、個人の小規模な店で販売するというのが主流です。
+M：へー。
+F：農園の一部を市民に貸し出している農家の割合が突出して大きいという点が何を置いてもユニークと言えます。借りた人はオーナーの指導を受けながら、農産物が栽培できるんです。
+M：地元の交流にも繋がるんですね。
+F：ええ。それから住宅が集中しているところに農園があることで災害時の避難場所としても期待が高まっています。また子供たちが野菜を育て、農産物について学ぶ場を提供している農家もあるんですよ。
+N：農家の人は山川市の農家の1番の特徴は何だと言っていますか？`,
+th:`N：พิธีกรชายทางโทรทัศน์กำลังสัมภาษณ์เกษตรกร เกษตรกรบอกว่าจุดเด่นที่สุดของเกษตรกรในเมืองยามาคาวะคืออะไร?
+M：ได้ยินว่าเมืองยามาคาวะซึ่งอยู่ใกล้ใจกลางเมือง มีเกษตรกรอยู่มากเหมือนกันนะครับ
+F：ค่ะ โดยทั่วไปจะผลิตผลผลิตทางการเกษตรหลากหลายชนิดในปริมาณเล็กน้อย แล้วขายผ่านร้านขนาดเล็กของเอกชนค่ะ
+M：อ๋อ
+F：จุดที่โดดเด่นและเป็นเอกลักษณ์ที่สุดคือ สัดส่วนของเกษตรกรที่แบ่งพื้นที่สวนบางส่วนให้ประชาชนเช่ามีสูงมาก ผู้เช่าสามารถปลูกพืชผลได้โดยได้รับคำแนะนำจากเจ้าของสวน
+M：ช่วยสร้างความสัมพันธ์กับคนในท้องถิ่นด้วยสินะครับ
+F：ค่ะ นอกจากนี้ การมีพื้นที่เกษตรอยู่ท่ามกลางเขตที่อยู่อาศัยหนาแน่น ยังถูกคาดหวังให้ใช้เป็นสถานที่อพยพเมื่อเกิดภัยพิบัติ และยังมีเกษตรกรที่เปิดพื้นที่ให้เด็ก ๆ ปลูกผักและเรียนรู้เกี่ยวกับผลผลิตทางการเกษตรด้วยค่ะ
+N：เกษตรกรบอกว่าจุดเด่นที่สุดของเกษตรกรในเมืองยามาคาวะคืออะไร?`,
+ex:'「何を置いてもユニーク」と強調しているのは、農園の一部を市民に貸し出している農家の割合が突出して大きいことです。',
+kw:'一番の特徴／突出して大きい／何を置いてもユニーク／市民に貸し出す'}
+
+,{id:'問題2-6',section:'p2',no:6,choices:['あまいもので疲れをとってもらうため','もてなす気持ちを表すため','おみやげとして買ってもらうため','温泉で体調が悪くなるのをふせぐため'],answer:'4',audio:'P2Q06.mp3',
+prompt:'ラジオで旅館の経営者が話しています。旅館の部屋にお菓子が置いてある1番の理由は何だと言っていますか？',
+promptTh:'ทางวิทยุ เจ้าของเรียวกังกำลังพูด เขาบอกว่าเหตุผลสำคัญที่สุดที่วางขนมไว้ในห้องพักคืออะไร?',
+jp:`N：ラジオで旅館の経営者が話しています。旅館の部屋にお菓子が置いてある1番の理由は何だと言っていますか？
+F：うちは温泉が自慢の旅館です。各お部屋にサービスで地元のお菓子を置いております。甘いもので旅の疲れが取れるとか、もてなす気持ちが伝わるなどとお客様から喜んでいただいております。売店で同じお菓子を販売しておりますが、お土産として買ってくださるお客様も多いです。このお菓子、実は温泉に入る前に何か口にしてほしいという意図があるんです。というのは空腹で入ると貧血や目眩を起こしかねません。体調を崩す、とにかくそれを防ぎたいからなんです。お客様には当旅館を存分に楽しんでいただきたいです。
+N：旅館の部屋にお菓子が置いてある1番の理由は何だと言っていますか？`,
+th:`N：ทางวิทยุ เจ้าของเรียวกังกำลังพูด เขาบอกว่าเหตุผลสำคัญที่สุดที่วางขนมไว้ในห้องพักคืออะไร?
+F：เรียวกังของเราภูมิใจกับบ่อน้ำพุร้อนค่ะ ในแต่ละห้องเราวางขนมท้องถิ่นไว้ให้เป็นบริการ ลูกค้าชอบและบอกว่าของหวานช่วยคลายความเหนื่อยล้าจากการเดินทาง หรือทำให้รู้สึกถึงการต้อนรับของเรา ที่ร้านขายของก็ขายขนมแบบเดียวกัน และมีลูกค้าหลายคนซื้อเป็นของฝากด้วยค่ะ จริง ๆ แล้วเรามีเจตนาอยากให้ลูกค้ากินอะไรสักอย่างก่อนลงแช่น้ำพุร้อน เพราะถ้าลงแช่ตอนท้องว่าง อาจเกิดภาวะโลหิตจางหรือเวียนศีรษะได้ เราต้องการป้องกันไม่ให้ลูกค้าเสียสุขภาพ นั่นคือสิ่งสำคัญที่สุดค่ะ และอยากให้ทุกคนสนุกกับการพักที่เรียวกังของเราอย่างเต็มที่
+N：เหตุผลสำคัญที่สุดที่วางขนมไว้ในห้องพักคืออะไร?`,
+ex:'一番の理由は、空腹のまま温泉に入って貧血や目眩などで体調を崩すことを防ぐためです。',
+kw:'温泉に入る前／何か口にしてほしい／空腹／貧血や目眩／防ぎたい'}
+
+,{id:'問題3-1',section:'p3',no:1,choices:['保育園の仕事の種類','おいしい食事を作る工夫','子供の体を強くする食事','自分の仕事のやりがい'],answer:'4',audio:'P3Q01.mp3',
+prompt:'女の人は何について話していますか？',
+promptTh:'ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?',
+jp:`N：テレビでアナウンサーが女の人にインタビューをしています。
+M：今日は保育園に勤務されている渡辺さんにお話を伺います。
+F：私は保育園で調理師をしています。栄養士さんが作成したメニューで料理を作る仕事です。みんなが残さず食べておいしかったと言ってくれることが何よりうれしくて、仕事を続けるエネルギーになっています。かむ力が弱い年齢の子供向けに材料を細かく切って準備したり、アレルギーの確認をしたり、やることはたくさんあって子供の安全のためにもミスは許されませんが人の役に立ってるなっていう実感があるんです。
+N：女の人は何について話していますか？`,
+th:`N：ทางโทรทัศน์ ผู้ประกาศกำลังสัมภาษณ์ผู้หญิงคนหนึ่ง
+M：วันนี้เราจะมาพูดคุยกับคุณวาตานาเบะ ซึ่งทำงานอยู่ที่สถานรับเลี้ยงเด็กครับ
+F：ฉันทำงานเป็นพ่อครัวที่สถานรับเลี้ยงเด็กค่ะ หน้าที่คือทำอาหารตามเมนูที่นักโภชนาการจัดไว้ สิ่งที่ทำให้ดีใจที่สุดคือเด็ก ๆ กินหมดและบอกว่าอร่อย มันกลายเป็นพลังให้ฉันทำงานต่อไป สำหรับเด็กเล็กที่ยังเคี้ยวไม่เก่งก็ต้องหั่นวัตถุดิบให้ละเอียด และต้องตรวจเรื่องการแพ้อาหาร มีหลายอย่างที่ต้องทำและเพื่อความปลอดภัยของเด็ก เราผิดพลาดไม่ได้ แต่ฉันรู้สึกจริง ๆ ว่างานของฉันเป็นประโยชน์ต่อผู้อื่น
+N：ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?`,
+ex:'仕事内容そのものの説明よりも、「おいしかった」と言ってもらえる喜びや、人の役に立っている実感など、自分の仕事のやりがいについて話しています。',
+kw:'何よりうれしい／仕事を続けるエネルギー／人の役に立っている実感／やりがい'}
+
+,{id:'問題3-2',section:'p3',no:2,choices:['水がなくても使える日用品','宇宙と地球での生活の共通点','健康のために役に立つもの','宇宙での暮らしの大変さ'],answer:'1',audio:'P3Q02.mp3',
+prompt:'アナウンサーは何について話していますか？',
+promptTh:'ผู้ประกาศกำลังพูดเกี่ยวกับเรื่องอะไร?',
+jp:`N：テレビでアナウンサーが話しています。
+M：先日、宇宙での暮らしのために開発された日用品が発表されました。歯磨き用の錠剤は数回かむと水がなくても、まるで歯磨き粉を歯ブラシでこすった時のように泡がたちます。体を拭くための温泉シートは温泉の成分が入っていて、拭くだけでだんだん暖かくなってきて、ホッとすることができます。お風呂に入らなくても温泉気分が味わえます。この歯磨き用の錠剤と温泉シートは地上の生活でも災害時に断水した時、キャンプや登山の時など水が貴重な場で役立ちそうです。
+N：アナウンサーは何について話していますか？`,
+th:`N：ผู้ประกาศกำลังพูดทางโทรทัศน์
+M：เมื่อไม่นานมานี้ มีการเปิดตัวของใช้ประจำวันที่พัฒนาขึ้นสำหรับการใช้ชีวิตในอวกาศ เม็ดสำหรับทำความสะอาดฟัน เพียงเคี้ยวไม่กี่ครั้งก็เกิดฟองได้โดยไม่ต้องใช้น้ำ ราวกับใช้ยาสีฟันกับแปรงสีฟัน ส่วนแผ่นเช็ดตัวแบบออนเซ็นมีส่วนผสมของน้ำพุร้อน เมื่อเช็ดแล้วจะค่อย ๆ อุ่นขึ้น ทำให้รู้สึกผ่อนคลาย แม้ไม่อาบน้ำก็สัมผัสบรรยากาศแบบออนเซ็นได้ ของใช้สองชนิดนี้น่าจะมีประโยชน์บนโลกด้วย เช่น ตอนภัยพิบัติที่น้ำประปาถูกตัด หรือเวลาไปแคมป์ปิงและปีนเขาซึ่งน้ำมีค่ามาก
+N：ผู้ประกาศกำลังพูดเกี่ยวกับเรื่องอะไร?`,
+ex:'宇宙用に開発された日用品ですが、共通点は「水がなくても使える」ことです。災害時やキャンプなど地上でも役立つと説明しています。',
+kw:'水がなくても／歯磨き用の錠剤／温泉シート／断水／水が貴重'}
+
+,{id:'問題3-3',section:'p3',no:3,choices:['海外旅行におすすめの地域','インターネットの便利さ','海外旅行に行く前の情報の集め方','趣味から生まれた交流の喜び'],answer:'4',audio:'P3Q03.mp3',
+prompt:'女の人は何について話していますか？',
+promptTh:'ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?',
+jp:`N：ラジオで女の人が話しています。
+F：趣味は海外旅行です。今までアジア、ヨーロッパ、アフリカなどいろいろな国や地域に行きました。その記録をインターネットで公開してるんです。時々バスの乗り具合はどうでしたかとか、私も同じ時に行っていましたとか、メッセージをもらうことがあって、やり取りをするのが楽しいんですよね。旅行の記録は時間をかけて書いてるのでメッセージが全然ないと寂しく感じるくらいです。
+N：女の人は何について話していますか？`,
+th:`N：ผู้หญิงกำลังพูดทางวิทยุ
+F：งานอดิเรกของฉันคือการท่องเที่ยวต่างประเทศค่ะ เคยไปหลายประเทศและหลายภูมิภาคทั้งเอเชีย ยุโรป และแอฟริกา แล้วฉันก็นำบันทึกการเดินทางไปเผยแพร่ทางอินเทอร์เน็ต บางครั้งมีคนส่งข้อความมาถามว่ารถบัสเป็นอย่างไร หรือบอกว่าเขาก็ไปช่วงเวลาเดียวกัน การได้โต้ตอบกันแบบนี้สนุกมากค่ะ ฉันใช้เวลามากในการเขียนบันทึกการเดินทาง ถึงขนาดถ้าไม่มีข้อความตอบกลับเลยก็รู้สึกเหงา
+N：ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?`,
+ex:'旅行先そのものより、旅行記を公開したことで生まれた読者とのやり取りを「楽しい」と感じていることが中心です。',
+kw:'旅行の記録／インターネットで公開／メッセージ／やり取りが楽しい／寂しく感じる'}
+
+,{id:'問題3-4',section:'p3',no:4,choices:['自分が若かった頃の思い出','若い社員の成長に対する思い','社員全員でやってきた仕事の内容','仕事を辞めた後の自分の目標'],answer:'2',audio:'P3Q04.mp3',
+prompt:'女の人は何について話していますか。',
+promptTh:'ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?',
+jp:`N：会社で女の人が退職のあいさつをしています。
+F：私は今日まで30年以上、この会社に勤めてきましたが、最後の5年間は主に新入社員を指導しました。その若い社員たちが集まってメッセージ動画を作ってプレゼントしてくれました。入社当時は右も左も分からなかった社員たちが自分の今後の目標をしっかり述べていて、非常に頼もしく思いました。また、最近は自主的に勉強会を開いたり、1人でできる仕事も増えているようで安心しています。
+N：女の人は何について話していますか。`,
+th:`N：ที่บริษัท ผู้หญิงกำลังกล่าวคำอำลาเนื่องในโอกาสเกษียณ
+F：จนถึงวันนี้ฉันทำงานที่บริษัทนี้มากว่า 30 ปีแล้วค่ะ ช่วง 5 ปีสุดท้ายฉันทำหน้าที่หลักในการสอนพนักงานใหม่ พนักงานรุ่นใหม่เหล่านั้นรวมตัวกันทำวิดีโอข้อความมอบให้ฉันเป็นของขวัญ ตอนเข้าบริษัทใหม่ ๆ พวกเขายังไม่รู้อะไรเลย แต่ตอนนี้สามารถพูดถึงเป้าหมายของตัวเองในอนาคตได้อย่างชัดเจน ทำให้ฉันรู้สึกว่าไว้ใจได้มาก นอกจากนี้ช่วงหลัง ๆ พวกเขายังจัดกลุ่มเรียนรู้กันเอง และทำงานที่สามารถรับผิดชอบคนเดียวได้มากขึ้น ฉันจึงรู้สึกสบายใจค่ะ
+N：ผู้หญิงกำลังพูดเกี่ยวกับเรื่องอะไร?`,
+ex:'自分の退職後の目標ではなく、これまで指導してきた若い社員たちが成長したことを頼もしく、安心して感じているという話です。',
+kw:'新入社員を指導／今後の目標／頼もしい／自主的に勉強会／安心'}
+
+,{id:'問題3-5',section:'p3',no:5,choices:['他の画家の絵を写すことの意味','絵画の技術の変化','絵を描くことの面白さ','偉大な画家の絵の鑑賞方法'],answer:'1',audio:'P3Q05.mp3',
+prompt:'画家は何について話していますか。',
+promptTh:'จิตรกรกำลังพูดเกี่ยวกับเรื่องอะไร?',
+jp:`N：市民講座で画家が話しています。
+M：絵を見ながら同じように描いて写す作業を模写と言います。要するに絵を真似して描くことです。私は画家になる前にたびたびこの作業をしました。この作業を通して、画家たちの影のつけ方などの技術やモデルに対する解釈を自分の中に取り入れることができます。偉大な画家たちの多くもこの真似て描く練習を重ねて才能を磨いてきたと言われています。この作業によって美しいものへの感性を養うだけでなく、自分の絵に活かせる表現や技術を磨くことができます。
+N：画家は何について話していますか。`,
+th:`N：จิตรกรกำลังพูดในหลักสูตรสำหรับประชาชน
+M：การดูภาพแล้ววาดตามให้เหมือนเรียกว่า “การคัดลอกภาพ” หรือพูดง่าย ๆ คือการเลียนแบบภาพวาดครับ ก่อนจะเป็นจิตรกร ผมทำงานแบบนี้อยู่บ่อยครั้ง ผ่านการฝึกนี้ เราสามารถซึมซับเทคนิคของจิตรกร เช่น วิธีลงเงา รวมถึงวิธีตีความแบบหรือโมเดลมาเป็นของตัวเองได้ กล่าวกันว่าจิตรกรผู้ยิ่งใหญ่จำนวนมากก็พัฒนาพรสวรรค์ด้วยการฝึกวาดเลียนแบบซ้ำ ๆ การฝึกแบบนี้ไม่เพียงช่วยพัฒนาความรู้สึกต่อความงาม แต่ยังช่วยฝึกการแสดงออกและเทคนิคที่นำไปใช้กับภาพของตัวเองได้
+N：จิตรกรกำลังพูดเกี่ยวกับเรื่องอะไร?`,
+ex:'模写をすることで、他の画家の技術や解釈を学び、自分の表現や技術を磨けるという「模写の意味・効果」について話しています。',
+kw:'模写／真似して描く／技術を取り入れる／感性を養う／表現や技術を磨く'}
+
+
+,{id:'問題4-1',section:'p4',no:1,choices:['涙が出るような話じゃないってことか','泣ける映画なんだ','え、なんでもう映画終わったの？'],answer:'2',audio:'P4Q01.mp3',
+prompt:'先週始まった新しい映画、涙なしには見られないって話だよ。',
+promptTh:'หนังใหม่ที่เริ่มฉายเมื่อสัปดาห์ก่อน ได้ยินว่าดูโดยไม่เสียน้ำตาไม่ได้เลยนะ',
+jp:`N：先週始まった新しい映画、涙なしには見られないって話だよ。
+1：涙が出るような話じゃないってことか。
+2：泣ける映画なんだ。
+3：え、なんでもう映画終わったの？`,
+th:`N：หนังใหม่ที่เริ่มฉายเมื่อสัปดาห์ก่อน ได้ยินว่าดูโดยไม่เสียน้ำตาไม่ได้เลยนะ
+1：หมายถึงไม่ใช่เรื่องที่จะทำให้น้ำตาไหลสินะ
+2：เป็นหนังที่ดูแล้วร้องไห้สินะ
+3：เอ๊ะ ทำไมหนังจบไปแล้วล่ะ?`,
+ex:'「涙なしには見られない」は「泣かずには見られない」という意味なので、「泣ける映画なんだ」が自然です。',
+kw:'涙なしには〜ない／泣ける／意味の言い換え'}
+
+,{id:'問題4-2',section:'p4',no:2,choices:['全然増えてなくていいですね','増えたり減ったりを繰り返してるんですか','増え続けるのは困りますね'],answer:'3',audio:'P4Q02.mp3',
+prompt:'この数年、なんでか体重が増える一方なんですよね。',
+promptTh:'ช่วงหลายปีมานี้ ไม่รู้ทำไมแต่น้ำหนักเพิ่มขึ้นเรื่อย ๆ เลยครับ',
+jp:`N：この数年、なんでか体重が増える一方なんですよね。
+1：全然増えてなくていいですね。
+2：増えたり減ったりを繰り返してるんですか。
+3：増え続けるのは困りますね。`,
+th:`N：ช่วงหลายปีมานี้ ไม่รู้ทำไมแต่น้ำหนักเพิ่มขึ้นเรื่อย ๆ เลยครับ
+1：ไม่เพิ่มเลยก็ดีนะครับ
+2：เพิ่มบ้างลดบ้างสลับกันหรือครับ
+3：ถ้าเพิ่มต่อเนื่องแบบนี้ก็ลำบากนะครับ`,
+ex:'「増える一方」は増え続けているという意味なので、「増え続けるのは困りますね」が合います。',
+kw:'〜一方／増え続ける／共感'}
+
+,{id:'問題4-3',section:'p4',no:3,choices:['うん。安いけど１つだけにする','もっと安くなるまで待つの？','安いからもっと買った方がいい？'],answer:'1',audio:'P4Q03.mp3',
+prompt:'ねえ、洗剤安いからってそんなにたくさん買わなくていいんじゃない？',
+promptTh:'นี่ ถึงน้ำยาซักผ้าจะถูก ก็ไม่จำเป็นต้องซื้อเยอะขนาดนั้นไม่ใช่เหรอ?',
+jp:`N：ねえ、洗剤安いからってそんなにたくさん買わなくていいんじゃない？
+1：うん。安いけど１つだけにする。
+2：もっと安くなるまで待つの？
+3：安いからもっと買った方がいい？`,
+th:`N：นี่ ถึงน้ำยาซักผ้าจะถูก ก็ไม่จำเป็นต้องซื้อเยอะขนาดนั้นไม่ใช่เหรอ?
+1：อืม ถึงจะถูกแต่เอาแค่หนึ่งอันก็พอ
+2：จะรอจนถูกกว่านี้อีกเหรอ?
+3：เพราะถูกเลยควรซื้อเพิ่มอีกไหม?`,
+ex:'相手は「たくさん買わなくていい」と勧めているので、それを受け入れる1が自然です。',
+kw:'〜からって／そんなに〜なくていい／受け入れる'}
+
+,{id:'問題4-4',section:'p4',no:4,choices:['午後ですか？かまいませんよ','ミーティングに出てくれるんですか？','じゃ、ミーティングに出るのはやめておきましょう'],answer:'1',audio:'P4Q04.mp3',
+prompt:'あのう、渡辺さん。明日の午後のミーティングに出てもらえると助かるんですが。',
+promptTh:'เอ่อ คุณวาตานาเบะ ถ้าช่วยเข้าประชุมช่วงบ่ายพรุ่งนี้ได้ จะช่วยได้มากเลยครับ',
+jp:`N：あのう、渡辺さん。明日の午後のミーティングに出てもらえると助かるんですが。
+1：午後ですか？かまいませんよ。
+2：ミーティングに出てくれるんですか？
+3：じゃ、ミーティングに出るのはやめておきましょう。`,
+th:`N：เอ่อ คุณวาตานาเบะ ถ้าช่วยเข้าประชุมช่วงบ่ายพรุ่งนี้ได้ จะช่วยได้มากเลยครับ
+1：ช่วงบ่ายเหรอครับ? ได้ครับ ไม่มีปัญหา
+2：จะเข้าประชุมให้หรือครับ?
+3：งั้นไม่ต้องเข้าประชุมแล้วกันครับ`,
+ex:'依頼を受ける自然な返答は「かまいませんよ」です。',
+kw:'〜てもらえると助かる／依頼／かまいません'}
+
+,{id:'問題4-5',section:'p4',no:5,choices:['小田くんがいなくても勝てると思ってるんだね','確かに十分に戦えるって僕も思うよ','小田くんがいないと負けちゃうよ'],answer:'3',audio:'P4Q05.mp3',
+prompt:'小田くんの捻挫、治らないんだって。明日の野球の試合に小田くん、欠かせないのに。',
+promptTh:'ได้ยินว่าข้อเท้าแพลงของโอดะคุงยังไม่หาย ทั้งที่เกมเบสบอลพรุ่งนี้ขาดโอดะคุงไม่ได้แท้ ๆ',
+jp:`N：小田くんの捻挫、治らないんだって。明日の野球の試合に小田くん、欠かせないのに。
+1：小田くんがいなくても勝てると思ってるんだね。
+2：確かに十分に戦えるって僕も思うよ。
+3：小田くんがいないと負けちゃうよ。`,
+th:`N：ได้ยินว่าข้อเท้าแพลงของโอดะคุงยังไม่หาย ทั้งที่เกมเบสบอลพรุ่งนี้ขาดโอดะคุงไม่ได้แท้ ๆ
+1：คิดว่าถึงไม่มีโอดะคุงก็ชนะได้สินะ
+2：จริงด้วย ผมก็คิดว่าสู้ได้เต็มที่เหมือนกัน
+3：ถ้าไม่มีโอดะคุงคงแพ้แน่เลย`,
+ex:'「欠かせない」は「絶対に必要」という意味なので、「いないと負けちゃうよ」が文脈に合います。',
+kw:'欠かせない／必要不可欠／いないと〜'}
+
+,{id:'問題4-6',section:'p4',no:6,choices:['え、つまらなそうに見えた？','いや、この動画おかしくて','そう、そんなに面白くないんだよね'],answer:'2',audio:'P4Q06.mp3',
+prompt:'何スマホ見てひとりでゲラゲラ笑ってるの？',
+promptTh:'ดูสมาร์ตโฟนแล้วหัวเราะคนเดียวเสียงดังทำไม?',
+jp:`N：何スマホ見てひとりでゲラゲラ笑ってるの？
+1：え、つまらなそうに見えた？
+2：いや、この動画おかしくて。
+3：そう、そんなに面白くないんだよね。`,
+th:`N：ดูสมาร์ตโฟนแล้วหัวเราะคนเดียวเสียงดังทำไม?
+1：เอ๊ะ ดูเหมือนน่าเบื่อเหรอ?
+2：เปล่า วิดีโอนี้มันตลกน่ะ
+3：ใช่ ไม่ได้สนุกขนาดนั้นหรอก`,
+ex:'笑っている理由を聞かれているので、「この動画おかしくて」が自然です。',
+kw:'ゲラゲラ笑う／理由／おかしい'}
+
+,{id:'問題4-7',section:'p4',no:7,choices:['森さんはプログラムのことじゃなければいいんですね？','では、森さん以外の人に頼みましょう','ええ、森さんにお願いしましょう'],answer:'3',audio:'P4Q07.mp3',
+prompt:'新しい会計ソフトウェアの作成ですが、プログラムのことなら森さんですよね。',
+promptTh:'เรื่องการสร้างซอฟต์แวร์บัญชีใหม่ ถ้าเป็นเรื่องโปรแกรมก็คงต้องคุณโมริใช่ไหมครับ',
+jp:`N：新しい会計ソフトウェアの作成ですが、プログラムのことなら森さんですよね。
+1：森さんはプログラムのことじゃなければいいんですね？
+2：では、森さん以外の人に頼みましょう。
+3：ええ、森さんにお願いしましょう。`,
+th:`N：เรื่องการสร้างซอฟต์แวร์บัญชีใหม่ ถ้าเป็นเรื่องโปรแกรมก็คงต้องคุณโมริใช่ไหมครับ
+1：ถ้าไม่ใช่เรื่องโปรแกรมก็ไม่ต้องคุณโมริสินะ?
+2：งั้นขอให้คนอื่นนอกจากคุณโมริทำเถอะ
+3：ครับ งั้นขอให้คุณโมริทำกันเถอะ`,
+ex:'「プログラムのことなら森さんですよね」は森さんが適任という意味なので、3が自然です。',
+kw:'〜なら森さん／適任／お願いする'}
+
+,{id:'問題4-8',section:'p4',no:8,choices:['雨、止まないと嫌だね','雨、そんな止んでじゃないの？','雨、気にならないんだね'],answer:'1',audio:'P4Q08.mp3',
+prompt:'日曜の朝、雨降るんだって。出かけるまでに止めばいいけど。',
+promptTh:'ได้ยินว่าเช้าวันอาทิตย์ฝนจะตก ถ้าหยุดก่อนออกไปข้างนอกก็ดีนะ',
+jp:`N：日曜の朝、雨降るんだって。出かけるまでに止めばいいけど。
+1：雨、止まないと嫌だね。
+2：雨、そんな止んでじゃないの？
+3：雨、気にならないんだね。`,
+th:`N：ได้ยินว่าเช้าวันอาทิตย์ฝนจะตก ถ้าหยุดก่อนออกไปข้างนอกก็ดีนะ
+1：ถ้าฝนไม่หยุดก็คงแย่นะ
+2：ฝนไม่ได้หยุดขนาดนั้นหรอกหรือ?
+3：ไม่กังวลเรื่องฝนสินะ`,
+ex:'話し手は雨が止むことを望んでいるので、その気持ちに共感する1が自然です。',
+kw:'〜までに止めばいい／願望／共感'}
+
+,{id:'問題4-9',section:'p4',no:9,choices:['おじいちゃん、元気でよかったね','いいおじいちゃんだったんだね','おじいちゃんの体、心配だよね'],answer:'2',audio:'P4Q09.mp3',
+prompt:'たまにね、おじいちゃんが生きているといいのにって思うんだ。',
+promptTh:'บางครั้งก็คิดนะว่า ถ้าคุณปู่ยังมีชีวิตอยู่ก็คงดี',
+jp:`N：たまにね、おじいちゃんが生きているといいのにって思うんだ。
+1：おじいちゃん、元気でよかったね。
+2：いいおじいちゃんだったんだね。
+3：おじいちゃんの体、心配だよね。`,
+th:`N：บางครั้งก็คิดนะว่า ถ้าคุณปู่ยังมีชีวิตอยู่ก็คงดี
+1：ดีจังที่คุณปู่ยังแข็งแรง
+2：คุณปู่คงเป็นคนดีมากเลยนะ
+3：เป็นห่วงสุขภาพของคุณปู่สินะ`,
+ex:'「生きているといいのに」は祖父がすでに亡くなっていることを示すので、思い出に共感する2が自然です。',
+kw:'〜といいのに／故人／思い出／共感'}
+
+,{id:'問題4-10',section:'p4',no:10,choices:['決めたんだったら、そうしたほうがいいよ','やめるかどうか相談して決めるんだね','きちんと決めてからのほうが良くない？'],answer:'1',audio:'P4Q10.mp3',
+prompt:'学校、辞めるって決めた以上、早く先生にも話した方がいいよね。',
+promptTh:'ในเมื่อ决定แล้วว่าจะลาออกจากโรงเรียน ก็ควรรีบบอกครูด้วยใช่ไหม',
+jp:`N：学校、辞めるって決めた以上、早く先生にも話した方がいいよね。
+1：決めたんだったら、そうしたほうがいいよ。
+2：やめるかどうか相談して決めるんだね。
+3：きちんと決めてからのほうが良くない？`,
+th:`N：ในเมื่อ决定แล้วว่าจะลาออกจากโรงเรียน ก็ควรรีบบอกครูด้วยใช่ไหม
+1：ถ้าตัดสินใจแล้ว ก็ควรทำแบบนั้นนะ
+2：จะปรึกษาก่อนว่าจะลาออกหรือไม่แล้วค่อยตัดสินใจสินะ
+3：ไม่ควรตัดสินใจให้ชัดเจนก่อนหรือ?`,
+ex:'「決めた以上」はすでに決定済みなので、その前提を受けて1が自然です。',
+kw:'〜以上／決定済み／そうしたほうがいい'}
+
+,{id:'問題4-11',section:'p4',no:11,choices:['怒るほどじゃなかったんですか？','我慢できないくらいの態度だったんですか？','怒らないで済んでよかったじゃないですか'],answer:'2',audio:'P4Q11.mp3',
+prompt:'昨日、部下の態度に怒らずにはいられなかったんですよ。',
+promptTh:'เมื่อวานผมอดโกรธกับท่าทีของลูกน้องไม่ได้เลยครับ',
+jp:`N：昨日、部下の態度に怒らずにはいられなかったんですよ。
+1：怒るほどじゃなかったんですか？
+2：我慢できないくらいの態度だったんですか？
+3：怒らないで済んでよかったじゃないですか。`,
+th:`N：เมื่อวานผมอดโกรธกับท่าทีของลูกน้องไม่ได้เลยครับ
+1：ไม่ได้รุนแรงถึงขั้นต้องโกรธหรือครับ?
+2：เป็นท่าทีที่ทนไม่ไหวขนาดนั้นเลยหรือครับ?
+3：ดีแล้วนี่ครับที่ไม่ต้องโกรธ`,
+ex:'「怒らずにはいられなかった」は我慢できず怒ったという意味なので、2が自然です。',
+kw:'〜ずにはいられない／我慢できない／怒った'}
+
+
+,{id:'問題5-1',section:'p5',no:1,choices:['おばあさんの家に預ける','おばあさんに来てもらう','ペットショップの人に来てもらう','動物病院に預ける'],answer:'2',audio:'P5Q01.mp3',
+prompt:'3人は留守の間犬の部屋をどうすることに決めましたか？',
+promptTh:'ทั้งสามคนตัดสินใจว่าจะจัดการดูแลสุนัขอย่างไรในช่วงที่ไม่อยู่บ้าน?',
+jp:`N：母親と息子と娘が留守の間の犬の世話について話しています。
+F：来月旅行に行くよね。その間、ポチの世話をどうしたらいいと思う？三日間も留守番させるのはねぇ。
+M：毎日、散歩も食事の世話もあるし。
+F：前もおばあちゃんの家で預かってもらったよね。近くに住んでるんだし、今回もお願いする？また見てもいいって言ってたよ。
+M：でも、あの後様子がおかしかったよね。犬も場所が変わるとすごくストレスを感じるんだよ。ポチ、まだ小さいし。
+F：ポチおばあちゃんのことは大好きなんだけどね。
+M：だから今回は、うちに置いておくのがいいと思うんだけど。飼い主の留守中にペットショップの人が家に来て犬の散歩や食事を代わりにやってくれるサービスがあるんだって。
+F：へー！
+M：駅前のペットショップでもやってるみたいだから、頼んでみたらどうかな？
+F：うーん。
+F：ね、でも1日中誰かそばにいてくれた方が安心なんじゃない？おばあちゃんの家がダメなら、動物病院でもペットの宿泊サービスをやってるよ。
+F：あー、いつも通ってる病院でも預かってくれるよね。
+M：うーん、でもやっぱり住み慣れた所にいる方がポチは安心できると思うんだよね。
+F：そうね。うーん、ただ誰かに来てもらうとしてもポチがよく慣れてる人にお願いした方が心強いよね。また見てもいいって言ってくれてたからお願いしよう。朝晩２回くらいなら大丈夫だと思う。
+N：3人は留守の間犬の部屋をどうすることに決めましたか？`,
+th:`N：แม่ ลูกชาย และลูกสาวกำลังคุยกันเรื่องการดูแลสุนัขระหว่างที่ทุกคนไม่อยู่บ้าน
+F：เดือนหน้าเราจะไปเที่ยวกันใช่ไหม ช่วงนั้นจะดูแลโปจิยังไงดี ปล่อยให้อยู่บ้านคนเดียวตั้งสามวันก็คง...
+M：ทุกวันต้องพาไปเดินเล่นและให้อาหารด้วย
+F：ครั้งก่อนก็ฝากไว้ที่บ้านคุณยายใช่ไหม บ้านก็อยู่ใกล้ ๆ คราวนี้ขออีกดีไหม? คุณยายก็บอกว่ายินดีดูให้อีกนะ
+M：แต่หลังจากนั้นโปจิดูแปลก ๆ ใช่ไหม สุนัขก็เครียดมากถ้าต้องเปลี่ยนสถานที่ แล้วโปจิก็ยังเล็กด้วย
+F：โปจิชอบคุณยายมากนะ
+M：เพราะงั้นคราวนี้ผมคิดว่าให้อยู่ที่บ้านเราดีกว่า ได้ยินว่ามีบริการที่พนักงานร้านสัตว์เลี้ยงมาที่บ้านแทนเจ้าของ พาไปเดินเล่นและให้อาหาร
+F：โอ้!
+M：ดูเหมือนร้านสัตว์เลี้ยงหน้าสถานีก็มีบริการนี้ ลองใช้ดีไหม?
+F：อืม...
+F：แต่ถ้ามีใครอยู่ใกล้ ๆ ตลอดทั้งวันก็น่าจะอุ่นใจกว่านะ ถ้าบ้านคุณยายไม่เหมาะ โรงพยาบาลสัตว์ก็มีบริการรับฝากสัตว์ด้วย
+F：อ๋อ โรงพยาบาลที่เราไปประจำก็รับฝากใช่ไหม
+M：อืม แต่ยังไงผมก็คิดว่าโปจิน่าจะสบายใจกว่าถ้าอยู่ในที่ที่คุ้นเคย
+F：จริงนะ ถ้าจะให้ใครมาที่บ้าน ก็ควรเป็นคนที่โปจิคุ้นเคยจะอุ่นใจกว่า คุณยายก็บอกว่ายินดีดูให้อีก งั้นขอให้คุณยายมาช่วยดีกว่า ถ้ามาเช้าเย็นวันละสองครั้งก็น่าจะไหว
+N：ทั้งสามคนตัดสินใจว่าจะจัดการดูแลสุนัขอย่างไรในช่วงที่ไม่อยู่บ้าน?`,
+ex:'犬を住み慣れた自宅に置き、ポチがよく慣れているおばあさんに朝晩来てもらうことに決めています。',
+kw:'住み慣れた所／よく慣れてる人／また見てもいい／朝晩2回'}
+
+,{id:'問題5-2',section:'p5',no:2,choices:[],answer:'質問1：4／質問2：2',audio:'P5Q02.mp3',
+prompt:'お雑煮についての会話。質問が2つあります。',
+promptTh:'บทสนทนาเกี่ยวกับโอโซนิ มีคำถาม 2 ข้อ',
+subQuestions:[
+ {label:'質問1',prompt:'女の人はどこのお雑煮が食べたいですか？',promptTh:'ผู้หญิงอยากกินโอโซนิของพื้นที่ใด?',choices:['東部','西部','北部','南部'],answer:'4'},
+ {label:'質問2',prompt:'男の人はどこのお雑煮が食べたいですか？',promptTh:'ผู้ชายอยากกินโอโซนิของพื้นที่ใด?',choices:['東部','西部','北部','南部'],answer:'2'}
+],
+jp:`N：テレビのアナウンサーがお正月の料理について話しています。
+M：あと少しでお正月ですね。お正月の食べ物といえば、お雑煮ですが、スープの味や材料は、この地域の中でも場所によって違います。例えば、東部は醤油味で野菜や鶏肉が入っています。同じ醤油味でも、西部では鮭などの魚を入れます。これに対して野菜も魚も入っていないのは北部のお雑煮でのりだけが入っているシンプルな物です。お雑煮の味付けですが、醤油だけではありません。南部は味噌で味付けをします。材料は野菜だけです。さて、皆さんのお宅では、どんなお雑煮を食べていらっしゃいますか？
+M：へー、いろいろあるんだね。どれ食べてみたい？
+F：うーん、うちは醤油味だから、味噌味のが食べてみたいな。
+M：僕はあっさりしてるのが好きなんだよね。だから味噌より醤油かな。それから魚が好きだから魚が入っているのが食べてみたいなあ。
+F：そうなんだ。じゃ、あっさりした味付けなら、のりが入っているのもいいんじゃない？
+M：うーん、珍しいから気になるけど、のりしか入ってないんじゃねえ。
+F：そう。
+N：質問1　女の人はどこのお雑煮が食べたいですか？
+N：質問2　男の人はどこのお雑煮が食べたいですか？`,
+th:`N：ผู้ประกาศทางโทรทัศน์กำลังพูดเกี่ยวกับอาหารช่วงปีใหม่
+M：อีกไม่นานก็จะถึงปีใหม่แล้วนะครับ พูดถึงอาหารปีใหม่ก็ต้องโอโซนิ แต่รสชาติของน้ำซุปและวัตถุดิบแตกต่างกันไปตามพื้นที่ แม้อยู่ในภูมิภาคเดียวกัน ตัวอย่างเช่น ภาคตะวันออกปรุงรสด้วยโชยุ ใส่ผักและไก่ ภาคตะวันตกก็ใช้โชยุเหมือนกันแต่ใส่ปลา เช่น ปลาแซลมอน ส่วนโอโซนิของภาคเหนือไม่ใส่ทั้งผักและปลา เป็นแบบเรียบง่ายที่ใส่เพียงสาหร่าย การปรุงรสไม่ได้มีแต่โชยุเท่านั้น ภาคใต้ปรุงด้วยมิโสะ และใส่เฉพาะผัก แล้วที่บ้านของทุกท่านกินโอโซนิแบบไหนกันครับ?
+M：โอ้ มีหลายแบบเลยนะ อยากลองแบบไหน?
+F：อืม ที่บ้านฉันเป็นรสโชยุ เพราะงั้นอยากลองแบบมิโสะ
+M：ผมชอบรสเบา ๆ เลยเลือกโชยุมากกว่ามิโสะ แล้วผมก็ชอบปลา เลยอยากลองแบบที่มีปลา
+F：อย่างนั้นเอง ถ้าชอบรสเบา ๆ แบบใส่สาหร่ายก็น่าจะดีนะ?
+M：อืม ก็น่าสนใจเพราะแปลกดี แต่ถ้ามีแค่สาหร่ายอย่างเดียวก็...
+F：จริงนะ
+N：คำถามที่ 1 ผู้หญิงอยากกินโอโซนิของพื้นที่ใด?
+N：คำถามที่ 2 ผู้ชายอยากกินโอโซนิของพื้นที่ใด?`,
+ex:'質問1：女の人は「味噌味」が食べたいと言っています。本文では南部が味噌味なので正解は4です。／質問2：男の人は「醤油味」で「魚が入っている」ものを希望しています。本文では西部なので正解は2です。',
+kw:'質問1：味噌味→南部／質問2：醤油味＋魚→西部'}
+
+]};
+const data2024={"sections":[{"id":"p1","label":"問題1","name":"課題理解","status":"5問登録済み"},{"id":"p2","label":"問題2","name":"ポイント理解","status":"6問登録済み"},{"id":"p3","label":"問題3","name":"概要理解","status":"5問登録済み"},{"id":"p4","label":"問題4","name":"即時応答","status":"11問登録済み"},{"id":"p5","label":"問題5","name":"統合理解","status":"2問登録済み"}],"questions":[{"id":"2024-12-問題1-1","displayId":"問題1-1","section":"p1","no":1,"choices":["発表会当日の係を決める","アンケートの内容を決める","関係者に案内のメールを送る","ポスターの案を作る"],"answer":"4","audio":"JLPT_N2_2024-12_Q01.mp3","prompt":"大学の合唱サークルで女の学生と男の学生が発表会の準備について話しています。女の学生は何をしますか。","promptTh":"","jp":"N：大学の合唱サークルで女の学生と男の学生が発表会の準備について話しています。女の学生は何をしますか。\nF：山田君、今日の練習の後、来月の発表会の準備について３年生で話し合うよね？悪いけど、私、早く帰らなきゃいけなくなっちゃって…家でできることあればやるけど…。\nM：そう。えっと、今日は当日の係の分担を決めるよね？それから当日に配るアンケートの内容をみんなで見直すことになってたね。\nF：うん。\nM：あと残っているのは関係者に発表会の案内メールを送ることとポスターの作成かな？案内のメールは僕から送ることになってるからポスターを頼める？\nF：どの曲をやるかポスターに入れるよね？曲の順番はこの間決めた通りでいい？\nM：うん、案を作ってくれたらみんなで確認をするから今週中にお願い。\nF：了解。\nN：女の学生は何をしますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題1-2","displayId":"問題1-2","section":"p1","no":2,"choices":["ア　イ","ア　ウ","イ　ウ","ア　イ　ウ"],"answer":"2","audio":"JLPT_N2_2024-12_Q02.mp3","image":"2024-12_P1Q02_choices.jpeg","prompt":"映画館でマネージャーの女の人がアルバイトの男の人と話しています。男の人は今日、何をしなければなりませんか。","promptTh":"","jp":"N：映画館でマネージャーの女の人がアルバイトの男の人と話しています。男の人は今日、何をしなければなりませんか。\nF：中山さん、今日はアルバイト研修の３回目ですね。今日もよろしくお願いします。\nM：よろしくお願いします。\nF：今日はまず、フロアの仕事をしてもらいます。ホールの入口に立って、チケットの確認と案内をしてください。映画が始まる30分前には立っているようにしてくださいね。\nM：はい。\nF：前回はフードの販売に入ってもらいましたが、お客様への対応が丁寧でよかったですよ。フロアに立つ時も笑顔でお願いしますね。\nM：はい、頑張ります。\nF：それから昼休みを挟んで清掃の担当をお願いします。映画が終わり次第、劇場内の座席と床の掃除を始めてください。次の回の開始まであまり時間がないから大急ぎでお願いします。\nM：わかりました。\nN：男の人は今日、何をしなければなりませんか。","th":"","ex":"","kw":""},{"id":"2024-12-問題1-3","displayId":"問題1-3","section":"p1","no":3,"choices":["市の国際課にメールを送る","市の国際課にりれき書を送る","説明会に参加する","活動中の人に話を聞く"],"answer":"1","audio":"JLPT_N2_2024-12_Q03.mp3","prompt":"大学院で先生と女の留学生が話しています。女の留学生はこれからまず何をしますか。","promptTh":"","jp":"N：大学院で先生と女の留学生が話しています。女の留学生はこれからまず何をしますか。\nM：リーさん、この間、「日本語の支援が必要な子供に日本語を教えるボランティアをしたい」って言ってましたよね？\nF：はい、先生。\nM：市役所の国際課から「日本に来たばかりの小学生に国の言葉で日本語を教えてくれる人はいないか」って話が来たんです。\nF：はい、是非やりたいです。\nM：これ、国際課のメールアドレスです。ここに連絡すれば履歴書の提出とかボランティア活動の日時の調整について返信が来るそうですから連絡してください。\nF：そうですか。ボランティアの説明会はありますか？\nM：説明会は特にないそうですが、何か知りたければ個別に対応してくれるそうですよ。それに教えることが決まったら、今活動している人から話が聞けるとのことです。\nF：わかりました。\nN：女の留学生はこれからまず何をしますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題1-4","displayId":"問題1-4","section":"p1","no":4,"choices":["発表するテーマを決める","しりょうをさがす","発表のたんとうを決める","インタビューの内容を決める"],"answer":"2","audio":"JLPT_N2_2024-12_Q04.mp3","prompt":"大学の日本語の授業で先生が話しています。留学生は今日の授業で最初に何をしますか。","promptTh":"","jp":"N：大学の日本語の授業で先生が話しています。留学生は今日の授業で最初に何をしますか。\nF：前回は日本の社会で関心があることをグループ発表のテーマに決めましたね。この後は必要な資料を調べた上で日本人の大学生にインタビューし、発表原稿を書いていきます。発表ではグループで担当を決めて全員が話すようにしますが、これは原稿をまとめる時に決めましょう。今日はパソコンで資料の検索と整理をします。次回はインタビューの内容を決めますのでそれまでに資料の整理を終わらせておきましょう。では、作業に取り掛かってください。\nN：留学生は今日の授業で最初に何をしますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題1-5","displayId":"問題1-5","section":"p1","no":5,"choices":["客へのプレゼントの案を出す","ロビーでのイベントの案を作る","ロビーのかざり方を計画する","ミニツアーをきかくする"],"answer":"2","audio":"JLPT_N2_2024-12_Q05.mp3","prompt":"ホテルで男の部長と女の人が話しています。女の人はこれから何をしなければなりませんか。","promptTh":"","jp":"N：ホテルで男の部長と女の人が話しています。女の人はこれから何をしなければなりませんか。\nM：田中さん。宿泊客向けの秋のフェアなんですが、お客様にお渡しするプレゼント、先日田中さんが出してくれた案に決まりました。\nF：あっ、そうですか。良かったです。\nM：それで次はホテルのロビーで行うイベントと飾りつけなんですけど・・・。\nF：はい。\nM：来月の会議までにイベントの企画案を３つくらい出してもらえますか？去年は秋の植物を使った置き物を作る体験を企画しましたよね？去年とは違うものを考えてください。ロビーを飾るのはいつもの会社にお願いするけど、その前にイベントの内容を決めないといけないですからね。\nF：はい。\nM：今年の秋のフェアでは夕食後にホテルから紅葉を見に行くミニツアーを企画しているので夕食前にできるようなものをお願いします。\nF：わかりました。\nN：女の人はこれから何をしなければなりませんか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-1","displayId":"問題2-1","section":"p2","no":1,"choices":["雑誌の記事になったこと","せんでんに有名なはいゆうを使ったこと","歌手がテレビで取り上げたこと","ドラマの中で使われたこと"],"answer":"3","audio":"JLPT_N2_2024-12_Q06.mp3","prompt":"会社の昼休みに女の人と男の人がある商品について話しています。男の人は何がきっかけでこの商品が話題になったと言っていますか。","promptTh":"","jp":"N：会社の昼休みに女の人と男の人がある商品について話しています。男の人は何がきっかけでこの商品が話題になったと言っていますか。\nF：佐藤さん。佐藤さんのチームが担当した携帯電話サイズのプロジェクター、売れてますね。\nM：ええ、こんなに話題になるなんて自分たちも驚いています。\nF：来月、ビジネス雑誌にも取り上げられることになったんですってね。特に有名な俳優さんを使って大きく宣伝をしたわけでもないのにすごいですね。\nM：おかげさまで。歌手の吉田なつきっているでしょ？彼女がテレビ番組で最近のお気に入りだって紹介してくれたんです。それを見た人が購入してくれて広がっていったんです。\nF：そうだったんですか。\nM：そのうちドラマとかでも使ってもらえたらうれしいなって思っています。\nN：男の人は何がきっかけでこの商品が話題になったと言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-2","displayId":"問題2-2","section":"p2","no":2,"choices":["食品会社にしゅうしょくしやすくなること","コミュニケーション能力が高められること","会社員の生活が具体的に分かること","仕事における自分の強みを見つけること"],"answer":"4","audio":"JLPT_N2_2024-12_Q07.mp3","prompt":"大学で女の学生と男の学生が企業での実習について話しています。女の学生は特にどんなことを期待して実習に参加すると言っていますか。","promptTh":"","jp":"N：大学で女の学生と男の学生が企業での実習について話しています。女の学生は特にどんなことを期待して実習に参加すると言っていますか。\nF：山下くん。私、夏休みにアオバ食品で企業実習をすることになったんだ。\nM：アオバ食品ってことは就職は食品関連の会社を希望しているの？\nF：うーん、就職に有利になるところを実習先で探している人もいるけど、私はまだそこまでは考えてないよ。ただね、今回は初めての実習だから職場でのコミュニケーションとかいろいろ心配。\nM：そっか。まぁ、初めての実習ならそれよりも会社員の生活ってどんなものか具体的にわかればいいんじゃない？\nF：まぁ、そうだけど、就職に向けて自分の得意なこととか自己分析してるけど自信が持てなくて・・・。だから今回の実習を通して自分が仕事でどう力を発揮できるか、そこを知りたいんだ。それで自分に合う会社とか仕事とか考えて就職の活動に繋げようと思って。\nM：そう、頑張ってね。\nN：女の学生は特にどんなことを期待して実習に参加すると言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-3","displayId":"問題2-3","section":"p2","no":3,"choices":["大きめの文字でしりょうを作ること","伝えたい内容をかんけつな表現で示すこと","聞く人がだれかをいしきすること","ポイントを書いたメモを作っておくこと"],"answer":"3","audio":"JLPT_N2_2024-12_Q08.mp3","prompt":"ラジオで女の人が話しています。女の人はプレゼンテーションの資料を作る時、どんなことに気をつけてほしいと言っていますか。","promptTh":"","jp":"N：ラジオで女の人が話しています。女の人はプレゼンテーションの資料を作る時、どんなことに気をつけてほしいと言っていますか。\nF：私は企業でプレゼンの研修をしていますが、プレゼンの資料を作るのは難しいですよね。資料を作る時は大きめの文字にするとか内容は簡潔な言葉で示すべきだとよく言われますが、まずは聞き手の立場に意識を向けましょう。同じ商品のプレゼンでも社内と営業先では相手にとって必要な情報が異なるはずです。話す内容を忘れないようにポイントを書いたメモを作っておく人もいますが、その際にも相手の立場に立った視点を欠かすことはできません。\nN：女の人はプレゼンテーションの資料を作る時、どんなことに気をつけてほしいと言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-4","displayId":"問題2-4","section":"p2","no":4,"choices":["買うより安く作れること","自分のアイデアを形にすること","作業に集中する時間が持てること","ストレス解消になること"],"answer":"2","audio":"JLPT_N2_2024-12_Q09.mp3","prompt":"ラジオで俳優が話しています。俳優は家具を作ることのどんなところに魅力を感じると言っていますか。","promptTh":"","jp":"N：ラジオで俳優が話しています。俳優は家具を作ることのどんなところに魅力を感じると言っていますか。\nM：私は最近、棚とか椅子とか趣味でいろいろな家具を作っています。近頃は手ごろな値段で買える店も多いですが、自分が本当に欲しい家具ってなかなかないんですよね。その点、自分で作れば考えた通りのデザインで作れるでしょう？頭に浮かんだアイデアを自分の手で家具として完成させていくっていう過程がたまらないんです。仕事があるので集中して一気に作ることは難しいし、うまくできないとストレスになることもあるんですけど、やっぱり楽しいですね。\nN：俳優は家具を作ることのどんなところに魅力を感じると言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-5","displayId":"問題2-5","section":"p2","no":5,"choices":["最後に十分加速できたこと","最初から最後まで自分のペースで走れたから","とちゅうで一度スピードを落としたから","早めに先頭に立てたから"],"answer":"1","audio":"JLPT_N2_2024-12_Q10.mp3","prompt":"陸上競技の大会でアナウンサーが選手にインタビューしています。選手はどうして今日、勝つことができたと言っていますか。","promptTh":"","jp":"N：陸上競技の大会でアナウンサーが選手にインタビューしています。選手はどうして今日、勝つことができたと言っていますか。\nM：女子5000メートル優勝の酒井選手です。おめでとうございます。今日の試合、ご自身で振り返っていかがでしたか？\nF：そうですね。最後はきつかったんですけど、思い切ってスピードを上げて、それが効いたんだと思います。もっと早い段階で前に出て自分のペースを維持できればよかったんですけど、今回の試合は風が強かったのでスピードを落とさずにいる自信がなくて・・・。それで途中まではほかの選手についていきました。次の試合は早めに先頭を取りに行きたいです。\nN：選手はどうして今日、勝つことができたと言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題2-6","displayId":"問題2-6","section":"p2","no":6,"choices":["こうしを一人にしぼったこと","借りた教室が広くすぎたこと","開始時間が早かったこと","事前に読むしりょうが　なかったこと"],"answer":"3","audio":"JLPT_N2_2024-12_Q11.mp3","prompt":"大学で女の学生と男の学生が国際協力の勉強会について話しています。男の学生は勉強会で良くなかったことは何だと言っていますか。","promptTh":"","jp":"N：大学で女の学生と男の学生が国際協力の勉強会について話しています。男の学生は勉強会で良くなかったことは何だと言っていますか。\nF：加藤くん、今日の勉強会お疲れ様。進行役、どうだった？\nM：参加者の反応、よかったと思うよ。いつもは論文を読み合うのが中心で卒業した先輩を講師に呼ぶのは初めてだったけど、海外ボランティアのいろんな話が聞けたし、うまくいったんじゃない？\nF：そうだね。講師は一人じゃなくて何人か呼んだほうがよかったかな？\nM：いや、一人の先輩の話だからこそ、じっくり話が聞けたんだと思うよ。\nF：借りた教室が広すぎて意見交換がしにくくなるかなって心配だったんだけど。\nM：そんなことなかったよ。質問もたくさん出たし。うーん、始まる時間はもう少し余裕を持って参加できる設定にしたほうがよかったと思うよ。授業が延びたとかで遅れてくる人もいたから。\nF：確かに。\nM：いつもは事前に論文に目を通さなきゃいけないけど、今回は参加者の負担もなくて、たまにはそれもいいかなって。\nF：そうだね。\nN：男の学生は勉強会で良くなかったことは何だと言っていますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題3-1","displayId":"問題3-1","section":"p3","no":1,"choices":["採用の面接で重視すること","今年の応募者の特徴","採用人数を増やした理由","入社後の新入社員の活躍"],"answer":"1","audio":"JLPT_N2_2024-12_Q12.mp3","prompt":"部長は何について話していますか。","promptTh":"","jp":"N：会社の人事部の会議で部長が話しています。\nM：えー、今年度は実務経験のある方の採用を大幅に増やす予定ですが、応募者数がかなり多いのでしっかり選考してください。面接では専門的な知識や経験の有無はもちろんのこと、いろいろな環境に柔軟に対応できる力があるかを見てください。それから、応募者がわが社での活躍をどのようにイメージできているかという点も見てください。\nN：部長は何について話していますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題3-2","displayId":"問題3-2","section":"p3","no":2,"choices":["ハチミツをテーマにした物語","ハチミツに含まれる栄養","ハチミツの採り方","食料としてのハチミツの歴史"],"answer":"4","audio":"JLPT_N2_2024-12_Q13.mp3","prompt":"女の人は、何について話していますか。","promptTh":"","jp":"N：ラジオで女の人が話しています。\nF：健康にいいと言われるハチミツは古くから人々に愛されてきました。\n西洋では2000年以上前の書物に当時の人がハチミツを食べていた記録を見ることができます。また、西洋のある神話の中にもハチミツの作り方を教えたとされる神様が登場します。\n日本では8世紀の書物にハチミツに関する記録がありますが、ハチミツは長い間一部の人しか口にできない貴重なものでした。明治になると育てやすいとされる西洋ミツバチという種類の蜂が輸入され、ハチミツが採りやすくなったことで一般の人の間でも一気に普及したのです。\nN：女の人は、何について話していますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題3-3","displayId":"問題3-3","section":"p3","no":3,"choices":["大人にとっての絵本の魅力","大人に選ばれる絵本のテーマ","親子で絵本を読むことのメリット","絵本が子供に与える影響"],"answer":"1","audio":"JLPT_N2_2024-12_Q14.mp3","prompt":"出版社の人は、何について話していますか。","promptTh":"","jp":"N：テレビでアナウンサーの男の人と絵本の出版社の人が話しています。\nM：今日は子供向けの本の出版社、さくら出版の山田さんにお話を伺います。最近、自分のために絵本を購入する大人が増えているそうですね。\nF：はい。絵本は子供でもわかるシンプルな言葉で書かれていますが、大人が読んでも心に響くものがあるようです。暖かなイラストや心にまっすぐ届く言葉で描かれた絵本は疲れた心をリラックスさせる効果があるという声が聞かれます。\nM：なるほど。ページ数も少なく、短時間で読めるというのも忙しい大人にとっては手に取りやすい理由の１つなのかもしれませんね。\nF：ええ。以前は絵本というと子供に読んで聞かせるものと思われがちでしたが、大人でも十分に楽しめるんだなと感じています。\nN：出版社の人は、何について話していますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題3-4","displayId":"問題3-4","section":"p3","no":4,"choices":["最近の映画研究の傾向","自分の映画におけるストーリーの組み立て方","人気がある映画の共通点","映画製作に対する姿勢の変化"],"answer":"2","audio":"JLPT_N2_2024-12_Q15.mp3","prompt":"映画監督は何について話していますか。","promptTh":"","jp":"N：講演会で映画監督が話しています。\nM：僕は子供のころから将来、映画製作の仕事がしたくて自分なりに様々な映画のストーリー展開を研究し、今のスタイルに行きつきました。僕がオリジナルの映画の構成を考える時は3つの要素で物語を展開させます。\nまず最初に問題の提示。つまり、何か困ったことが起きたりして解決すべきことを示します。そして主人公が問題解決に向かう中で予想外の展開があって、最終的に問題が解決する。その過程で主人公を成長させるんです。恋愛ものでも歴史ものでもそれは共通していますね。\nN：映画監督は何について話していますか。","th":"","ex":"","kw":""},{"id":"2024-12-問題3-5","displayId":"問題3-5","section":"p3","no":5,"choices":["社員１人１人に電気を節約してほしい","電気製品を省エネのものにしたい","日光で発電する機械を使いたい","会社の設備を長く大切に使ってほしい"],"answer":"1","audio":"JLPT_N2_2024-12_Q16.mp3","prompt":"社長が言いたいことは何ですか。","promptTh":"","jp":"N：会社で社長と女の社員が話しています。\nM：本田さん。ここ数年、会社の規模が大きくなったわけでもないのに電気代の支払いが増える一方なんですよね。\nF：そうですね。これまで照明や電気製品を省エネタイプに替えてきましたが・・・。以前検討していた太陽光発電も始めてみましょうか。\nM：うーん、その前に社員全員に無駄をもっとなくすことを考えてもらいたいんです。会議室の電気をつけっぱなしにしないとか１つ階を移動する程度ならできるだけ階段を使うとか。あとは、時々冷房の温度設定が低すぎるときがありますよね？みんなで意識してやっていかないといけないですよ。\nF：そうですね。そのように社内連絡で伝えます。\nN：社長が言いたいことは何ですか。","th":"","ex":"","kw":""},{"id":"2024-12-問題4-1","displayId":"問題4-1","section":"p4","no":1,"choices":["エアコンはなくてもいいんですか？","え？どうしてエアコンを使わないんですか？","エアコンつけて寝ないと寝れないですよね"],"answer":"3","audio":"JLPT_N2_2024-12_Q17.mp3","prompt":"こう熱帯夜が続くとエアコンは欠かせませんよね？","promptTh":"","jp":"F：こう熱帯夜が続くとエアコンは欠かせませんよね？\n1．エアコンはなくてもいいんですか？\n2．え？どうしてエアコンを使わないんですか？\n3．エアコンつけて寝ないと寝れないですよね","th":"","ex":"","kw":""},{"id":"2024-12-問題4-2","displayId":"問題4-2","section":"p4","no":2,"choices":["あ、私はいつでも構いません","打ち合わせの時間を長くするんですか？","２時からで大丈夫です"],"answer":"1","audio":"JLPT_N2_2024-12_Q18.mp3","prompt":"伊藤さん。２時から予定してた打ち合わせだけど、時間ずらしてもらえない？","promptTh":"","jp":"F：伊藤さん。２時から予定してた打ち合わせだけど、時間ずらしてもらえない？\n1．あ、私はいつでも構いません\n2．打ち合わせの時間を長くするんですか？\n3．２時からで大丈夫です","th":"","ex":"","kw":""},{"id":"2024-12-問題4-3","displayId":"問題4-3","section":"p4","no":3,"choices":["試合が近いから休みたくないんだ","ごめん、ちょっとバイトが忙しくて","練習がないから１人でやってたんだ"],"answer":"2","audio":"JLPT_N2_2024-12_Q19.mp3","prompt":"中野さん。中野さん、最近卓球部の練習休みがちだけどどうしたの？","promptTh":"","jp":"M：中野さん。中野さん、最近卓球部の練習休みがちだけどどうしたの？\n1．試合が近いから休みたくないんだ\n2．ごめん、ちょっとバイトが忙しくて\n3．練習がないから１人でやってたんだ","th":"","ex":"","kw":""},{"id":"2024-12-問題4-4","displayId":"問題4-4","section":"p4","no":4,"choices":["まだ戻られてないんですか？","課長、これから昼食ですか？","あ、もう帰ってこられたんですか？"],"answer":"1","audio":"JLPT_N2_2024-12_Q20.mp3","prompt":"もうすぐ会議の時間ですけど山本課長、昼ごはん食べに行ったきりですね。","promptTh":"","jp":"M：もうすぐ会議の時間ですけど山本課長、昼ごはん食べに行ったきりですね。\n1．まだ戻られてないんですか？\n2．課長、これから昼食ですか？\n3．あ、もう帰ってこられたんですか？","th":"","ex":"","kw":""},{"id":"2024-12-問題4-5","displayId":"問題4-5","section":"p4","no":5,"choices":["あー、直せないんですか","直せるんですね。良かったです","直せるかどうかまだわからないんですね"],"answer":"1","audio":"JLPT_N2_2024-12_Q21.mp3","prompt":"店長、修理を頼んでいた冷蔵庫ですが、買い替えるほかないそうです。","promptTh":"","jp":"F：店長、修理を頼んでいた冷蔵庫ですが、買い替えるほかないそうです。\n1．あー、直せないんですか\n2．直せるんですね。良かったです\n3．直せるかどうかまだわからないんですね","th":"","ex":"","kw":""},{"id":"2024-12-問題4-6","displayId":"問題4-6","section":"p4","no":6,"choices":["出る人だけ連絡すればいいんだね","行けないなら早めに返事するんだね","出席できない人は連絡いらないって思ってたよ"],"answer":"3","audio":"JLPT_N2_2024-12_Q22.mp3","prompt":"課長の送別会、「出席、欠席に関わらず早く返事くれ」って小野さんが言ってたよ。","promptTh":"","jp":"F：課長の送別会、「出席、欠席に関わらず早く返事くれ」って小野さんが言ってたよ。\n1．出る人だけ連絡すればいいんだね\n2．行けないなら早めに返事するんだね\n3．出席できない人は連絡いらないって思ってたよ","th":"","ex":"","kw":""},{"id":"2024-12-問題4-7","displayId":"問題4-7","section":"p4","no":7,"choices":["スタッフの分だけで３０個ですね。","予約するお弁当は全部で３０個ですね","スタッフのお弁当は別に注文するんですね"],"answer":"2","audio":"JLPT_N2_2024-12_Q23.mp3","prompt":"森さん。セミナー当日のお弁当、スタッフの分を含めて３０個予約をお願いします。","promptTh":"","jp":"F：森さん。セミナー当日のお弁当、スタッフの分を含めて３０個予約をお願いします。\n1．スタッフの分だけで３０個ですね。\n2．予約するお弁当は全部で３０個ですね\n3．スタッフのお弁当は別に注文するんですね","th":"","ex":"","kw":""},{"id":"2024-12-問題4-8","displayId":"問題4-8","section":"p4","no":8,"choices":["じゃ、部長が来てから始めよう","今日、部長来ないんだ","あー、今日はミーティング中止なんだね"],"answer":"2","audio":"JLPT_N2_2024-12_Q24.mp3","prompt":"今日のサンプルのミーティングだけど、「部長抜きでやってくれ」って部長からメールが来たよ。","promptTh":"","jp":"M：今日のサンプルのミーティングだけど、「部長抜きでやってくれ」って部長からメールが来たよ。\n1．じゃ、部長が来てから始めよう\n2．今日、部長来ないんだ\n3．あー、今日はミーティング中止なんだね","th":"","ex":"","kw":""},{"id":"2024-12-問題4-9","displayId":"問題4-9","section":"p4","no":9,"choices":["毎週土日は半額なんだね。行こうか？","平日が半額になるなら平日だね","今度の週末だね。土曜でもいい？"],"answer":"3","audio":"JLPT_N2_2024-12_Q25.mp3","prompt":"駅前のカラオケ、今度の土日に限り半額ってチラシで見たけど行かない？","promptTh":"","jp":"F：駅前のカラオケ、今度の土日に限り半額ってチラシで見たけど行かない？\n1．毎週土日は半額なんだね。行こうか？\n2．平日が半額になるなら平日だね\n3．今度の週末だね。土曜でもいい？","th":"","ex":"","kw":""},{"id":"2024-12-問題4-10","displayId":"問題4-10","section":"p4","no":10,"choices":["改めてお礼のメールを送ってください","じゃ、私から聞いてみましょうか","受けてもらえて安心しました"],"answer":"2","audio":"JLPT_N2_2024-12_Q26.mp3","prompt":"課長、みどり社に来年のイベントへの協力を依頼しているんですが、返事が曖昧なんです。","promptTh":"","jp":"M：課長、みどり社に来年のイベントへの協力を依頼しているんですが、返事が曖昧なんです。\n1．改めてお礼のメールを送ってください\n2．じゃ、私から聞いてみましょうか\n3．受けてもらえて安心しました","th":"","ex":"","kw":""},{"id":"2024-12-問題4-11","displayId":"問題4-11","section":"p4","no":11,"choices":["え？まだ時間あるのにもういっぱいなの？","じゃ、今月中に予約しなくちゃいけないんだね","そう。じゃ、来月になったらすぐ予約しよう"],"answer":"3","audio":"JLPT_N2_2024-12_Q27.mp3","prompt":"２月にみんなで行くスキー旅行のサイト見たけど、来月になってからでないと申し込みできないって。","promptTh":"","jp":"F：２月にみんなで行くスキー旅行のサイト見たけど、来月になってからでないと申し込みできないって。\n1．え？まだ時間あるのにもういっぱいなの？\n2．じゃ、今月中に予約しなくちゃいけないんだね\n3．そう。じゃ、来月になったらすぐ予約しよう","th":"","ex":"","kw":""}]};
+
+
+// v0.12.6 教材データ補完（2024年12月 問題1〜4）
+const SUP2024={"問題1-1": ["นักศึกษาหญิงกับนักศึกษาชายกำลังคุยเรื่องการเตรียมงานแสดง หลังซ้อมวันนี้นักศึกษาชั้นปี 3 จะคุยเรื่องแบ่งหน้าที่วันงานและทบทวนแบบสอบถาม แต่ผู้หญิงต้องกลับก่อน ผู้ชายจะส่งอีเมลแจ้งผู้เกี่ยวข้องเอง จึงขอให้ผู้หญิงทำร่างโปสเตอร์ภายในสัปดาห์นี้", "正解は④。案内メールは男性が送ることになっており、女性は「ポスターを頼める？」と依頼され、「了解」と答えています。①②は今日みんなで話し合う内容、③は男性の担当です。", "ポスターの作成／僕から送る／頼める？／今週中"], "問題1-2": ["วันนี้ผู้ชายต้องทำงานสองอย่าง คือยืนที่ทางเข้าเพื่อตรวจตั๋วและแนะนำผู้ชมก่อนหนังเริ่ม และหลังพักกลางวันทำความสะอาดที่นั่งกับพื้นในโรงภาพยนตร์ งานขายอาหารเป็นงานที่ทำไปครั้งก่อน", "正解は②（ア・ウ）。今日行うのはフロアでのチケット確認・案内（ア）と、映画終了後の清掃（ウ）です。フード販売（イ）は前回の研修です。", "今日はまず／チケットの確認と案内／前回は／清掃の担当"], "問題1-3": ["อาจารย์แนะนำงานอาสาสอนภาษาญี่ปุ่นแก่เด็กประถม ผู้หญิงต้องติดต่อแผนกนานาชาติของเทศบาลทางอีเมลก่อน จากนั้นจึงจะได้รับคำตอบเรื่องการส่งประวัติและการปรับวันเวลา ไม่มีการปฐมนิเทศ และจะคุยกับอาสาสมัครปัจจุบันหลังจากได้รับเลือกแล้ว", "正解は①。先生はまず国際課のメールアドレスに「連絡してください」と言っています。履歴書提出や日時調整はその返信後、活動中の人に話を聞くのは教えることが決まった後です。", "まず／国際課／連絡する／履歴書の提出／決まったら"], "問題1-4": ["ครั้งก่อนนักศึกษาได้เลือกหัวข้อการนำเสนอแล้ว วันนี้เริ่มจากค้นหาและจัดระเบียบข้อมูลด้วยคอมพิวเตอร์ ครั้งหน้าจึงค่อยกำหนดเนื้อหาสัมภาษณ์ ส่วนการแบ่งหน้าที่พูดจะกำหนดตอนรวบรวมต้นฉบับ", "正解は②。テーマは前回決定済み。今日は「パソコンで資料の検索と整理」を行います。担当決めは原稿をまとめる時、インタビュー内容は次回です。", "前回／資料の検索と整理／次回／原稿をまとめる時"], "問題1-5": ["ของขวัญสำหรับแขกได้ตัดสินจากข้อเสนอของทานากะแล้ว ต่อไปเธอต้องเสนอแผนกิจกรรมในล็อบบี้ประมาณ 3 แบบก่อนการประชุมเดือนหน้า การตกแต่งให้บริษัทเดิมทำ และมินิทัวร์ชมใบไม้แดงก็วางแผนไว้แล้ว", "正解は②。プレゼント案はすでに決定済み。飾りつけは会社に依頼し、ミニツアーも企画済みです。女性がこれからするのはロビーイベントの企画案を出すことです。", "次は／企画案／3つくらい／去年とは違う／夕食前"], "問題2-1": ["โปรเจ็กเตอร์ขนาดมือถือกลายเป็นที่พูดถึง เพราะนักร้องโยชิดะ นัตสึกิแนะนำในรายการโทรทัศน์ว่าเป็นของโปรดช่วงนี้ คนที่เห็นรายการจึงซื้อและกระแสแพร่ต่อไป บทความนิตยสารจะออกเดือนหน้า ส่วนละครเป็นเพียงความหวังในอนาคต", "正解は③。話題になった「きっかけ」は歌手がテレビ番組で紹介したことです。雑誌掲載は来月、俳優を使った宣伝はしておらず、ドラマ使用は将来の希望です。", "きっかけ／テレビ番組／お気に入り／紹介する／広がる"], "問題2-2": ["ผู้หญิงไม่ได้เข้าฝึกงานเพื่อให้ได้งานบริษัทอาหารโดยตรง สิ่งที่เธอคาดหวังเป็นพิเศษคือรู้ว่าตนสามารถใช้ความสามารถในการทำงานอย่างไร เพื่อค้นหาจุดแข็งและนำไปคิดต่อเรื่องบริษัทหรืองานที่เหมาะกับตน", "正解は④。「自分が仕事でどう力を発揮できるか、そこを知りたい」が中心です。会社員生活やコミュニケーションも話題に出ますが、本人が特に期待している点ではありません。", "特に／自己分析／力を発揮する／自分に合う／就職活動"], "問題2-3": ["ผู้พูดบอกว่าเวลาเตรียมสไลด์ ควรเริ่มจากมองในมุมของผู้ฟัง เพราะแม้เป็นสินค้าเดียวกัน ข้อมูลที่จำเป็นสำหรับคนในบริษัทกับลูกค้าก็ต่างกัน ตัวอักษรใหญ่ คำสั้นกระชับ และโน้ตเป็นเพียงตัวอย่างประกอบ", "正解は③。「まずは聞き手の立場に意識を向けましょう」が主張です。①②は一般によく言われること、④はメモの例で、いずれも中心点ではありません。", "聞き手の立場／意識を向ける／相手／必要な情報／視点"], "問題2-4": ["นักแสดงชอบทำเฟอร์นิเจอร์เอง เพราะสามารถเปลี่ยนไอเดียและดีไซน์ที่คิดไว้ให้กลายเป็นของจริงด้วยมือตนเอง เขาไม่ได้บอกว่าถูกกว่า และบางครั้งการทำไม่สำเร็จก็ทำให้เครียด", "正解は②。「頭に浮かんだアイデアを自分の手で家具として完成させていく過程がたまらない」と述べています。", "考えた通りのデザイン／アイデア／自分の手で／完成させる／過程"], "問題2-5": ["นักวิ่งบอกว่าช่วงท้ายเหนื่อยมาก แต่ตัดสินใจเร่งความเร็วเต็มที่และนั่นได้ผล ระหว่างทางเธอตามนักวิ่งคนอื่นเพราะลมแรง และครั้งหน้าจึงอยากขึ้นนำให้เร็วกว่านี้", "正解は①。勝因として「最後…思い切ってスピードを上げて、それが効いた」と明言しています。④は次の試合でやりたいことです。", "最後／思い切って／スピードを上げる／それが効いた／次の試合"], "問題2-6": ["ผู้ชายประเมินว่างานโดยรวมดี ทั้งการเชิญรุ่นพี่เพียงคนเดียว ห้องใหญ่ และไม่มีบทความให้อ่านล่วงหน้า ปัญหาคือเวลาเริ่มเร็วเกินไป ทำให้คนที่ชั้นเรียนเลิกช้ามาสาย จึงควรกำหนดเวลาให้มี余裕มากขึ้น", "正解は③。男性が改善点として挙げたのは開始時間です。「もう少し余裕を持って参加できる設定に」と述べています。", "良くなかったこと／余裕を持つ／開始時間／授業が延びる／遅れてくる"], "問題3-1": ["หัวหน้าแผนกบุคคลอธิบายสิ่งที่ต้องให้ความสำคัญในการสัมภาษณ์ผู้สมัคร ได้แก่ ความรู้และประสบการณ์เฉพาะทาง ความสามารถในการปรับตัวต่อสภาพแวดล้อมต่าง ๆ และภาพว่าตนจะมีบทบาทในบริษัทอย่างไร", "正解は①。話の中心は応募者の特徴や採用増の理由ではなく、面接で「何を見るか」という選考基準です。", "面接／重視する／専門的な知識／柔軟に対応／活躍をイメージ"], "問題3-2": ["ผู้หญิงเล่าประวัติของน้ำผึ้งในฐานะอาหาร ตั้งแต่หลักฐานในตะวันตกกว่า 2,000 ปีก่อน ไปจนถึงญี่ปุ่นในศตวรรษที่ 8 และการแพร่หลายหลังนำผึ้งตะวันตกเข้ามาในสมัยเมจิ", "正解は④。西洋と日本の古い記録から、明治期の普及までを時系列で説明しており、食料としてのハチミツの歴史がテーマです。", "古くから／記録／8世紀／明治／普及"], "問題3-3": ["สำนักพิมพ์อธิบายเสน่ห์ของหนังสือภาพสำหรับผู้ใหญ่ เช่น ภาษาง่ายแต่กินใจ ภาพอบอุ่นช่วยผ่อนคลาย และจำนวนหน้าน้อยอ่านได้ในเวลาสั้น ๆ จึงเหมาะกับผู้ใหญ่ที่忙しい", "正解は①。大人が絵本を買う理由・魅力を複数挙げています。テーマの種類や親子読み、子供への影響が中心ではありません。", "大人／心に響く／リラックス／短時間／手に取りやすい"], "問題3-4": ["ผู้กำกับอธิบายวิธีประกอบโครงเรื่องของภาพยนตร์ตนเองเป็น 3 ขั้น: เสนอปัญหา เกิดเหตุการณ์ที่คาดไม่ถึงระหว่างการแก้ปัญหา และสุดท้ายแก้ปัญหา พร้อมให้ตัวเอกเติบโต", "正解は②。監督自身の映画で、物語を3要素でどう展開させるかを具体的に説明しています。", "構成／3つの要素／問題の提示／予想外の展開／問題解決"], "問題3-5": ["ประธานบริษัทต้องการให้พนักงานทุกคนช่วยลดการใช้ไฟฟ้าที่สูญเปล่า เช่น ไม่เปิดไฟห้องประชุมทิ้งไว้ ใช้บันไดเมื่อขึ้นลงเพียงชั้นเดียว และไม่ตั้งแอร์เย็นเกินไป", "正解は①。省エネ機器や太陽光発電より先に、「社員全員に無駄をもっとなくすことを考えてもらいたい」と求めています。", "電気代／無駄をなくす／つけっぱなし／階段／みんなで意識"], "問題4-1": ["F：ถ้าคืนที่อากาศร้อนจัดแบบนี้続く เครื่องปรับอากาศก็ขาดไม่ได้ใช่ไหม\n1：ไม่ต้องมีแอร์ก็ได้หรือครับ\n2：เอ๊ะ ทำไมไม่ใช้แอร์ล่ะครับ\n3：ถ้าไม่เปิดแอร์นอนก็นอนไม่หลับใช่ไหมครับ", "正解は③。「欠かせません」は「なくてはならない」の意味。③が同意する自然な応答です。①②は「エアコンを使わない」と逆に解釈しています。", "熱帯夜／続く／欠かせない／〜ないと寝られない"], "問題4-2": ["F：คุณอิโต้ เรื่องประชุมที่นัดไว้บ่ายสอง ขอเลื่อนเวลาได้ไหม\n1：ได้ค่ะ ฉันเวลาไหนก็ได้\n2：จะให้ประชุมนานขึ้นหรือคะ\n3：บ่ายสองก็ได้ค่ะ", "正解は①。「時間をずらす」＝開始時刻を変更する。①は変更を受け入れる返答です。", "予定していた／打ち合わせ／時間をずらす／いつでも構わない"], "問題4-3": ["M：คุณนากาโนะ ช่วงนี้ขาดซ้อมชมรมปิงปองบ่อย เป็นอะไรหรือ\n1：ใกล้แข่งแล้วเลยไม่อยากหยุด\n2：ขอโทษ ช่วงนี้งานพิเศษยุ่งนิดหน่อย\n3：ไม่มีซ้อมเลยฝึกคนเดียว", "正解は②。「休みがち」の理由を尋ねられているので、アルバイトが忙しいという②が自然です。", "最近／卓球部／休みがち／どうしたの／バイトが忙しい"], "問題4-4": ["M：ใกล้ถึงเวลาประชุมแล้ว แต่หัวหน้ายามาโมโตะออกไปกินข้าวกลางวันแล้วก็ยัง...\n1：ยังไม่กลับมาอีกหรือครับ\n2：หัวหน้าจะไปกินข้าวตอนนี้หรือครับ\n3：อ๋อ กลับมาแล้วหรือครับ", "正解は①。「〜たきり」は、その後その状態が続いていることを表します。昼食に行ったまま戻っていない状況です。", "〜たきり／もうすぐ／会議／まだ戻っていない"], "問題4-5": ["F：ผู้จัดการคะ ตู้เย็นที่ส่งซ่อม เขาว่าคงไม่มีทางอื่นนอกจากซื้อใหม่ค่ะ\n1：อ๋อ ซ่อมไม่ได้หรือ\n2：ซ่อมได้สินะ ดีจัง\n3：ยังไม่รู้ว่าจะซ่อมได้หรือเปล่าสินะ", "正解は①。「買い替えるほかない」＝買い替える以外に方法がない＝修理できない、という意味です。", "修理／買い替える／〜ほかない／直せない"], "問題4-6": ["F：งานเลี้ยงส่งหัวหน้า คุณโอโนะบอกว่าไม่ว่าจะไปหรือไม่ไปก็ให้รีบตอบนะ\n1：เฉพาะคนไปต้องติดต่อสินะ\n2：ถ้าไปไม่ได้ก็ต้องรีบตอบสินะ\n3：ฉันนึกว่าคนที่ไปไม่ได้ไม่ต้องติดต่อเสียอีก", "正解は③。「出席・欠席に関わらず」なので、欠席でも返事が必要です。③はそれを受けて自分の誤解に気づく応答です。", "送別会／出席・欠席／〜に関わらず／返事／連絡"], "問題4-7": ["F：คุณโมริ ช่วยจองข้าวกล่องสำหรับวันสัมมนา รวมของสตาฟแล้วทั้งหมด 30 กล่องนะคะ\n1：เฉพาะของสตาฟ 30 กล่องสินะ\n2：ข้าวกล่องที่จองทั้งหมด 30 กล่องสินะ\n3：ของสตาฟสั่งแยกต่างหากสินะ", "正解は②。「スタッフの分を含めて30個」なので、スタッフ分も含む総数が30個です。", "当日／お弁当／スタッフの分を含めて／30個／全部で"], "問題4-8": ["M：ประชุมตัวอย่างวันนี้ หัวหน้าส่งเมลมาว่าให้ประชุมโดยไม่มีหัวหน้า\n1：งั้นรอหัวหน้ามาแล้วค่อยเริ่ม\n2：วันนี้หัวหน้าไม่มาสินะ\n3：อ๋อ วันนี้ยกเลิกประชุมสินะ", "正解は②。「部長抜きで」＝部長なしで実施する、という意味。中止ではありません。", "部長抜き／〜抜きで／メール／ミーティング"], "問題4-9": ["F：เห็นใบปลิวว่าคาราโอเกะหน้าสถานีลดครึ่งราคาเฉพาะเสาร์อาทิตย์ที่จะถึงนี้ ไปไหม\n1：ทุกเสาร์อาทิตย์ครึ่งราคาสินะ ไปกันไหม\n2：ถ้าวันธรรมดาครึ่งราคา งั้นไปวันธรรมดา\n3：สุดสัปดาห์นี้สินะ วันเสาร์ได้ไหม", "正解は③。「今度の土日に限り」＝次の土日だけ。③が期間を正しく理解しています。", "今度の土日／〜に限り／半額／チラシ"], "問題4-10": ["M：หัวหน้าครับ เราขอความร่วมมือจากบริษัทมิโดริสำหรับงานปีหน้า แต่คำตอบยังคลุมเครือครับ\n1：ช่วยส่งอีเมลขอบคุณอีกครั้ง\n2：งั้นให้ฉันลองถามเองไหม\n3：โล่งใจที่เขารับแล้ว", "正解は②。「返事が曖昧」なので、まだ承諾されたとは言えません。課長が直接確認する②が自然です。", "協力を依頼する／返事／曖昧／私から聞いてみる"], "問題4-11": ["F：ดูเว็บไซต์ทริปสกีเดือนกุมภาพันธ์แล้ว เขาบอกว่าต้องรอถึงเดือนหน้าถึงจะสมัครได้\n1：เอ๊ะ ทั้งที่ยังมีเวลา แต่เต็มแล้วหรือ\n2：งั้นต้องจองภายในเดือนนี้สินะ\n3：อ๋อ งั้นพอถึงเดือนหน้าก็รีบจองกัน", "正解は③。「来月になってからでないと申し込みできない」＝今月は申し込めず、来月から可能。", "来月になってから／〜でないと〜ない／申し込み／すぐ予約する"]};
+data2024.questions.forEach(q=>{
+  const k=q.displayId||q.id.replace(/^2024-12-/,'');
+  const a=SUP2024[k];
+  if(a){ q.th=a[0]; q.promptTh=a[0].split('\n')[0]; q.ex=a[1]; q.kw=a[2]; }
+});
+
+// v0.12.7 2024年12月・問題5
+const P5_2024=[
+ {id:'2024-12-問題5-1',displayId:'問題5-1',section:'p5',no:1,
+  choices:['イベントスペースに座席を作る','食べ終わった客に席を空けてもらうよう声をかける','早く席を空けた客に割引券を配る','フードコートの中の座席を増やす'],answer:'3',audio:'JLPT_N2_2024-12_Q28.mp3',
+  prompt:'混雑解消のためにまず何をすることにしましたか。',
+  promptTh:'เพื่อแก้ปัญหาความแออัด พวกเขาตกลงว่าจะทำอะไรก่อน?',
+  jp:`N：会議で上司と社員２人がフードコートの混雑について話しています。\nM：うちが運営している南ショッピングセンターなんですが、週末のランチタイムになるとフードコートが混雑して席が空くのを待ってる人がたくさんいるんですよね。何かいい案はありませんか？\nF：フードコートの横にイベントスペースがありますよね？何も置いていないし、あそこにも座席を作れたらいいんですが・・・。\nM：そうなんですが、定期的に使用する予定が入っているからちょっと難しいですよね。\nM：食事が終わった後ゆっくり座ってる方も多くて、それが混雑の一因になっています。だから食べ終わった人に声をかけて席を空けてもらうと言うのはどうですか？\nF：お客様を追い出すようにするというのはちょっと・・・。\nM：それにお客様が多い中、スタッフが声をかけて回るのは無理がありますね。\nM：じゃ、早く、例えば30分以内に席を空けてくれたお客様に次回使える割引券をお渡しするのはどうですか？食事は前払いだからレシートに買った時間が書いてありますよね。出る時、スタッフにそれを見せて券を受け取ってもらうようにするとか・・・。\nM：あぁ、お客様も積極的に席を空けてくれそうですね。今のスタッフの人数では対応が難しそうですが・・・。\nF：やっぱり席を増やすのが優先だと思います。今の広さのままでももう少し席を追加できるんじゃないでしょうか？\nM：席と席の間が狭くなってしまいますよね？\nM：うーん、そうですね。スタッフを増やすことにしてお客様に進んで席を空けていただけそうな方法を試してみましょう。その結果を見て、席を増やした方がいいか検討しましょうか。\nN：混雑解消のためにまず何をすることにしましたか。`,
+  th:`N：ในการประชุม หัวหน้าและพนักงานสองคนกำลังคุยกันเรื่องความแออัดของศูนย์อาหาร\nM：ศูนย์การค้ามินามิที่บริษัทเราบริหารอยู่ พอถึงช่วงอาหารกลางวันวันหยุดสุดสัปดาห์ ศูนย์อาหารจะแน่นมาก มีคนจำนวนมากรอที่นั่งว่าง มีไอเดียดี ๆ ไหมครับ\nF：ข้างศูนย์อาหารมีพื้นที่จัดกิจกรรมใช่ไหมคะ ตอนที่ไม่ได้ใช้งาน ถ้าเพิ่มที่นั่งตรงนั้นได้ก็คงดีค่ะ\nM：แต่มีกำหนดใช้งานเป็นระยะ ๆ จึงค่อนข้างยากนะครับ\nM：อีกสาเหตุหนึ่งคือมีลูกค้าหลายคนนั่งต่อหลังรับประทานเสร็จแล้ว ถ้าเราไปขอให้คนที่กินเสร็จแล้วลุกจากที่นั่งล่ะครับ\nF：ทำเหมือนไล่ลูกค้าออกก็คงไม่ค่อยดีนะคะ\nM：และในช่วงที่ลูกค้าเยอะ ให้พนักงานเดินไปบอกทีละคนก็คงทำได้ยากครับ\nM：งั้นถ้าลูกค้าที่ลุกจากที่นั่งเร็ว เช่น ภายใน 30 นาที ได้คูปองส่วนลดสำหรับครั้งหน้าล่ะครับ เพราะจ่ายเงินก่อนกิน เวลาซื้อก็อยู่บนใบเสร็จ ตอนออกให้แสดงใบเสร็จแก่พนักงานแล้วรับคูปอง\nM：อ๋อ แบบนั้นลูกค้าน่าจะยอมลุกจากที่นั่งด้วยตัวเองมากขึ้น แต่จำนวนพนักงานตอนนี้คงรับมือยาก\nF：ฉันยังคิดว่าควรเพิ่มที่นั่งก่อน แม้พื้นที่เท่าเดิมก็น่าจะเพิ่มได้อีกหน่อย\nM：แต่ระยะห่างระหว่างที่นั่งจะแคบลงนะครับ\nM：อืม งั้นเพิ่มพนักงาน แล้วลองวิธีที่ทำให้ลูกค้าเต็มใจลุกจากที่นั่งก่อน จากผลที่ได้ค่อยพิจารณาว่าควรเพิ่มที่นั่งหรือไม่\nN：เพื่อแก้ปัญหาความแออัด พวกเขาตกลงว่าจะทำอะไรก่อน?`,
+  ex:'正解は③。最後に「スタッフを増やすことにして、お客様に進んで席を空けていただけそうな方法を試す」と決定しています。これは、30分以内に席を空けた客へ割引券を渡す案です。①はイベント予定があるため難しく、②はスタッフが声をかけて回るのが難しいとして不採用、④は割引券の方法を試した結果を見てから検討します。',
+  kw:'まず／30分以内／割引券／スタッフを増やす／進んで席を空ける／結果を見て検討'},
+ {id:'2024-12-問題5-2',displayId:'問題5-2',section:'p5',no:2,choices:[],answer:'質問1：1／質問2：4',audio:'JLPT_N2_2024-12_Q29.mp3',
+  prompt:'市の健康イベントについての話です。質問が2つあります。',promptTh:'เป็นบทสนทนาเกี่ยวกับงานสุขภาพของเมือง มีคำถาม 2 ข้อ',
+  subQuestions:[
+   {label:'質問1',prompt:'男の人はまずどの会場に行くと言っていますか。',promptTh:'ผู้ชายบอกว่าจะไปสถานที่ใดก่อน?',choices:['第１会場','第２会場','第３会場','第４会場'],answer:'1'},
+   {label:'質問2',prompt:'女の人はまずどの会場に行くと言っていますか。',promptTh:'ผู้หญิงบอกว่าจะไปสถานที่ใดก่อน?',choices:['第１会場','第２会場','第３会場','第４会場'],answer:'4'}],
+  jp:`N：市の健康イベントで市の職員が話しています。\nF：市民健康イベントにお越しいただきありがとうございます。館内には４つの会場がございます。第１会場では体力測定を実施しております。どなたにもできる簡単なテストでご自分の体力年齢を測定することができます。\n第２会場では健康づくりに役立つ体操を紹介しております。職場や家庭で簡単にできるものからちょっと難しめのものまでご自分の体力に合わせて運動していただけます。ぜひ体験してみてください。第３会場では健康な食生活をテーマに毎日の献立や調理法を講師が紹介します。栄養が偏りがちな方におすすめです。第４会場では健康に関する悩みや相談に個別にお答えします。１時から４時まで医師がおりますのでこの機会をご利用ください。\nM：へー、いろんなのがあるんだね。時間がない時に会社でもできる運動を教えてもらおうかな。最近運動してないし。\nF：うん、いいんじゃない？スポーツジムに行く時間も取れないもんね。通勤途中や仕事中でも体を動かせたらいいね。\nM：うん。まずは今どれくらい体力があるか測ってもらおう。頑張らなきゃって気になれるし。\nF：そう。私はやっぱり毎日の献立かな？一度食事を見直したいと思ってたの。\nM：それより最近ぐっすり眠れないって言ってなかった？お医者さんに相談してみたら？\nF：あ、そうだね。そっち先に行ってこよ。\nN：質問１：男の人はまずどの会場に行くと言っていますか。\nN：質問２：女の人はまずどの会場に行くと言っていますか。`,
+  th:`N：ในงานสุขภาพของเมือง เจ้าหน้าที่กำลังอธิบายกิจกรรม\nF：ขอบคุณที่มาร่วมงานสุขภาพประชาชน ภายในมี 4 สถานที่ สถานที่ 1 ตรวจสมรรถภาพร่างกายด้วยแบบทดสอบง่าย ๆ เพื่อวัดอายุสมรรถภาพ สถานที่ 2 แนะนำท่าบริหารเพื่อสุขภาพ ตั้งแต่ง่ายที่ทำได้ในที่ทำงานหรือบ้านจนถึงยากขึ้นตามระดับร่างกาย สถานที่ 3 แนะนำเมนูประจำวันและวิธีปรุงอาหารเพื่อสุขภาพ เหมาะกับผู้ที่โภชนาการไม่สมดุล สถานที่ 4 ให้คำปรึกษาปัญหาสุขภาพเป็นรายบุคคล โดยมีแพทย์ตั้งแต่บ่ายหนึ่งถึงสี่โมง\nM：มีหลายอย่างเลยนะ ผมอยากเรียนท่าออกกำลังกายที่ทำในบริษัทได้ตอนมีเวลาน้อย ช่วงนี้ไม่ได้ออกกำลังกายเลย\nF：ก็ดีนะ ไม่มีเวลาไปยิม ถ้าขยับร่างกายระหว่างเดินทางหรือทำงานได้ก็ดี\nM：อืม แต่ก่อนอื่นให้เขาวัดก่อนว่าตอนนี้ผมมีสมรรถภาพแค่ไหน จะได้รู้สึกว่าต้องพยายาม\nF：ฉันคงสนใจเมนูอาหารประจำวัน อยากทบทวนเรื่องอาหารสักครั้ง\nM：แต่ช่วงนี้เธอบอกว่านอนไม่ค่อยหลับไม่ใช่เหรอ ลองปรึกษาหมอดูไหม\nF：อ๊ะ จริงด้วย งั้นฉันไปทางนั้นก่อน\nN：คำถาม 1 ผู้ชายบอกว่าจะไปสถานที่ใดก่อน?\nN：คำถาม 2 ผู้หญิงบอกว่าจะไปสถานที่ใดก่อน?`,
+  ex:'質問1の正解は①。男性は運動にも関心がありますが、「まずは今どれくらい体力があるか測ってもらおう」と言っています。体力測定は第1会場です。\n\n質問2の正解は④。女性は最初、献立（第3会場）に関心を示しますが、男性に睡眠の悩みを医師へ相談するよう勧められ、「そっち先に行ってこよ」と変更します。医師への個別相談は第4会場です。',
+  kw:'質問1：まずは／体力を測る→第1会場　質問2：ぐっすり眠れない／お医者さんに相談／そっち先に→第4会場'}
+];
+data2024.questions.push(...P5_2024);
+
+let currentSession='2024-12';
+const sessionLabels={'2024-12':'2024年12月','2026-07':'2026年7月'};
+const dataSets={'2024-12':data2024,'2026-07':baseData};
+function currentSeed(){return dataSets[currentSession]||baseData}
+
+let db=null,sec='p1',idx=0,editPairs=[],saveTimer=null,isSaving=false,p3ChoicesShown=false;
+const $=s=>document.querySelector(s);
+const qs=()=>db.questions.filter(q=>q.section===sec).sort((a,b)=>a.no-b.no);
+
+function deepClone(v){return JSON.parse(JSON.stringify(v))}
+function mergeSeed(seed,saved){
+  if(!saved || typeof saved!=='object') return deepClone(seed);
+  const deleted=new Set(saved.deletedQuestionIds||[]);
+  const out={
+    // セクション名・種類・登録状況はプログラム側を正とする。
+    // 旧版の永続データに残った「未登録」で上書きしない。
+    sections: seed.sections.map(s=>Object.assign({},s)),
+    questions: [],
+    deletedQuestionIds:[...deleted]
+  };
+  const savedMap=new Map((saved.questions||[]).map(q=>[q.id,q]));
+  seed.questions.forEach(q=>{
+    if(deleted.has(q.id)) return;
+    if(savedMap.has(q.id)){
+      const savedQ=savedMap.get(q.id);
+      // v0.11.2: 旧版で空欄だった公式選択肢だけを新しい初期データから補完する。
+      if(Array.isArray(q.choices) && q.choices.some(x=>String(x||'').trim()) &&
+         (!Array.isArray(savedQ.choices) || !savedQ.choices.some(x=>String(x||'').trim()))){
+        savedQ.choices=deepClone(q.choices);
+      }
+      // v0.12.6: 教材側で追加・修正した必須フィールドを旧IndexedDBへ移行する。
+      ['promptTh','th','ex','kw','audio','image'].forEach(k=>{
+        if(q[k]!==undefined && String(q[k]||'').trim()) savedQ[k]=deepClone(q[k]);
+      });
+      if(Array.isArray(q.subQuestions) && Array.isArray(savedQ.subQuestions)){
+        q.subQuestions.forEach((seedSq,i)=>{
+          const savedSq=savedQ.subQuestions[i];
+          if(savedSq && Array.isArray(seedSq.choices) && seedSq.choices.some(x=>String(x||'').trim()) &&
+             (!Array.isArray(savedSq.choices) || !savedSq.choices.some(x=>String(x||'').trim()))){
+            savedSq.choices=deepClone(seedSq.choices);
+          }
+        });
+      }
+      out.questions.push(savedQ);
+    }else{
+      out.questions.push(deepClone(q));
+    }
+    savedMap.delete(q.id);
+  });
+  for(const q of savedMap.values()) out.questions.push(q); // user-created questions
+  return out;
+}
+function setStatus(text,kind=''){
+  const el=$('#saveStatus'); if(!el) return;
+  el.textContent=text; el.className='saveStatus'+(kind?' '+kind:'');
+}
+
+const IDB_NAME='JLPT_Studio_iPad';
+const IDB_VERSION=1;
+let idbPromise=null;
+function openStore(){
+  if(idbPromise)return idbPromise;
+  idbPromise=new Promise((resolve,reject)=>{
+    const req=indexedDB.open(IDB_NAME,IDB_VERSION);
+    req.onupgradeneeded=()=>{
+      const d=req.result;
+      if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');
+      if(!d.objectStoreNames.contains('audio'))d.createObjectStore('audio');
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+  return idbPromise;
+}
+async function idbGet(store,key){
+  const d=await openStore();
+  return new Promise((resolve,reject)=>{
+    const tx=d.transaction(store,'readonly');
+    const r=tx.objectStore(store).get(key);
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+async function idbSet(store,key,value){
+  const d=await openStore();
+  return new Promise((resolve,reject)=>{
+    const tx=d.transaction(store,'readwrite');
+    tx.objectStore(store).put(value,key);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function idbDelete(store,key){
+  const d=await openStore();
+  return new Promise((resolve,reject)=>{
+    const tx=d.transaction(store,'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function requestPersistentStorage(){
+  try{
+    if(navigator.storage && navigator.storage.persist) await navigator.storage.persist();
+  }catch(e){}
+}
+async function loadPersistent(){
+  try{
+    await requestPersistentStorage();
+    const saved=await idbGet('kv','dataset:'+currentSession);
+    db=mergeSeed(currentSeed(),saved);
+    await persistNow(true);
+    setStatus('● 保存済み','saved');
+  }catch(e){
+    console.error(e);
+    db=deepClone(currentSeed());
+    setStatus('● 端末内保存エラー','error');
+  }
+  sections();render();
+}
+async function persistNow(silent=false){
+  if(!db || isSaving) return;
+  isSaving=true;
+  if(!silent)setStatus('● 保存中…','dirty');
+  try{
+    await idbSet('kv','dataset:'+currentSession,deepClone(db));
+    setStatus('● 保存済み','saved');
+  }catch(e){
+    console.error(e);
+    setStatus('● 保存エラー','error');
+  }finally{
+    isSaving=false;
+  }
+}
+
+function scheduleSave(){
+  setStatus('● 未保存','dirty');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>persistNow(),900);
+}
+function sections(){
+  const w=$('#sectionList');w.innerHTML='';
+  db.sections.forEach(s=>{
+    const count=db.questions.filter(q=>q.section===s.id).length;
+    const status=count>0?`${count}問登録済み`:'未登録';
+    s.status=status;
+    let b=document.createElement('button');
+    b.className='section'+(s.id===sec?' active':'');
+    b.innerHTML=`<b>${s.label}　${s.name}</b><small>${status}</small>`;
+    b.onclick=()=>{commitEditorToQuestion();sec=s.id;idx=0;sections();render()};
+    w.appendChild(b)
+  })
+}
+function splitLines(text){return String(text||'').split(/\r?\n/).filter((x,i,a)=>!(x===''&&(i===0||i===a.length-1)))}
+function parseLine(line){const m=String(line||'').match(/^([NMF])：\s*(.*)$/);return m?{speaker:m[1],text:m[2]}:{speaker:'',text:String(line||'')}}
+function makePairs(q){
+  const ja=splitLines(q.jp),th=splitLines(q.th),n=Math.max(ja.length,th.length),out=[];
+  for(let i=0;i<n;i++){const j=parseLine(ja[i]||''),t=parseLine(th[i]||'');out.push({speaker:j.speaker||t.speaker||'M',ja:j.text||'',th:t.text||''})}
+  return out;
+}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+let furiganaOn=false;
+const FURI={'会社':'かいしゃ','男':'おとこ','女':'おんな','人':'ひと','来月':'らいげつ','部長':'ぶちょう','退職':'たいしょく','準備':'じゅんび','名前':'なまえ','工場':'こうじょう','週間':'しゅうかん','出来上':'できあ','受け取':'うけと','任せ':'まかせ','営業部':'えいぎょうぶ','感謝':'かんしゃ','花束':'はなたば','当日':'とうじつ','僕':'ぼく','料理':'りょうり','予約':'よやく','来週':'らいしゅう','出席者':'しゅっせきしゃ','食べ':'たべ','頼む':'たのむ','是非':'ぜひ','俺':'おれ','小林課長':'こばやしかちょう','学生':'がくせい','先生':'せんせい','旅行':'りょこう','計画案':'けいかくあん','研究':'けんきゅう','発表':'はっぴょう','順番':'じゅんばん','到着':'とうちゃく','必要':'ひつよう','話し合':'はなしあ','第３週':'だいさんしゅう','週末':'しゅうまつ','季節':'きせつ','観光':'かんこう','貸切':'かしきり','往復':'おうふく','交通手段':'こうつうしゅだん','大急ぎ':'おおいそぎ','宿泊先':'しゅくはくさき','叔父':'おじ','民宿':'みんしゅく','格安':'かくやす','大部屋':'おおべや','勉強':'べんきょう','大学':'だいがく','日本語':'にほんご','交流会':'こうりゅうかい','中学校':'ちゅうがっこう','活動':'かつどう','候補':'こうほ','自分':'じぶん','国':'くに','伝統的':'でんとうてき','楽器':'がっき','紹介':'しょうかい','簡単':'かんたん','会話':'かいわ','文化':'ぶんか','違い':'ちがい','以前':'いぜん','今回':'こんかい','内容':'ないよう','制服':'せいふく','イヤホン':'いやほん','資源':'しげん','燃えない':'もえない','充電':'じゅうでん','電気屋':'でんきや','検索':'けんさく','地域':'ちいき','市役所':'しやくしょ','公共施設':'こうきょうしせつ','回収':'かいしゅう','専用':'せんよう','今日':'きょう','就職':'しゅうしょく','希望':'きぼう','会社説明会':'かいしゃせつめいかい','会場':'かいじょう','建て替え':'たてかえ','工事':'こうじ','午前':'ごぜん','午後':'ごご','一日':'いちにち','時間帯':'じかんたい','料金':'りょうきん','開催':'かいさい','早速':'さっそく','質問':'しつもん','影響':'えいきょう','趣味':'しゅみ','時':'とき','番組':'ばんぐみ','小さい':'ちいさい','港':'みなと','岸':'きし','上':'うえ','姿':'すがた','始め':'はじめ','釣り':'つり','釣って':'つって','雑誌':'ざっし','友人':'ゆうじん','教えて':'おしえて','歯':'は','歯医者':'はいしゃ','奥':'おく','痛み':'いたみ','痛い':'いたい','検査':'けんさ','結果':'けっか','虫歯':'むしば','斜め':'ななめ','生えて':'はえて','周り':'まわり','菌':'きん','入った':'はいった','腫れて':'はれて','上下':'じょうげ','位置':'いち','合って':'あって','監督':'かんとく','選手':'せんしゅ','試合':'しあい','相手':'あいて','点':'てん','入れ':'いれ','笑顔':'えがお','勝つ':'かつ','負け':'まけ','来季':'らいき','課題':'かだい','守備':'しゅび','社員':'しゃいん','研修':'けんしゅう','会議':'かいぎ','企画部':'きかくぶ','支店':'してん','打ち合わせ':'うちあわせ','変更':'へんこう','農家':'のうか','農園':'のうえん','農産物':'のうさんぶつ','市民':'しみん','貸し出して':'かしだして','避難場所':'ひなんばしょ','提供':'ていきょう','子ども':'こども','学ぶ':'まなぶ','場':'ば','旅館':'りょかん','温泉':'おんせん','空腹':'くうふく','体調':'たいちょう','悪く':'わるく','防ぐ':'ふせぐ','疲れ':'つかれ','気持ち':'きもち','表す':'あらわす','土産':'みやげ','買って':'かって','保育園':'ほいくえん','仕事':'しごと','種類':'しゅるい','食事':'しょくじ','工夫':'くふう','子供':'こども','体':'からだ','強く':'つよく','宇宙':'うちゅう','開発':'かいはつ','日用品':'にちようひん','水':'みず','使える':'つかえる','健康':'けんこう','役に立つ':'やくにたつ','暮らし':'くらし','大変':'たいへん','海外旅行':'かいがいりょこう','おすすめ':'おすすめ','情報':'じょうほう','集め方':'あつめかた','交流':'こうりゅう','喜び':'よろこび','若い':'わかい','思い出':'おもいで','成長':'せいちょう','全員':'ぜんいん','辞めた':'やめた','後':'あと','目標':'もくひょう','他':'ほか','画家':'がか','絵':'え','写す':'うつす','意味':'いみ','技術':'ぎじゅつ','変化':'へんか','描く':'えがく','面白さ':'おもしろさ','偉大':'いだい','鑑賞':'かんしょう','方法':'ほうほう','映画':'えいが','涙':'なみだ','数年':'すうねん','体重':'たいじゅう','増える':'ふえる','洗剤':'せんざい','安い':'やすい','明日':'あした','野球':'やきゅう','会計':'かいけい','作成':'さくせい','森':'もり','日曜':'にちよう','朝':'あさ','雨':'あめ','学校':'がっこう','辞める':'やめる','決めた':'きめた','以上':'いじょう','早く':'はやく','昨日':'きのう','部下':'ぶか','態度':'たいど','怒らず':'おこらず','家':'いえ','預ける':'あずける','来てもらう':'きてもらう','動物病院':'どうぶつびょういん','東部':'とうぶ','西部':'せいぶ','北部':'ほくぶ','南部':'なんぶ','雑煮':'ぞうに','醤油味':'しょうゆあじ','味噌味':'みそあじ','野菜':'やさい','鶏肉':'とりにく','鮭':'さけ','魚':'さかな','海苔':'のり','食べたい':'たべたい','祖父':'そふ','始めた':'はじめた','何':'なに','外':'そと','探して':'さがして','方':'かた','見た':'みた','話':'はな','聞いて':'きいて','本':'ほん','読んで':'よんで','始まり':'はじまり','理由':'りゆう','最初':'さいしょ','今':'いま','昔':'むかし','最近':'さいきん','一番':'いちばん','思う':'おもう','太田':'おおた','幼い':'おさない','初心者':'しょしんしゃ','向け':'むけ','道具':'どうぐ','場所':'ばしょ','本屋':'ほんや','一緒':'いっしょ','様子':'ようす','今シーズン':'こんシーズン','来シーズン':'らいシーズン','代わり':'かわり','担当':'たんとう','南支店':'みなみしてん','山川市':'やまかわし','割合':'わりあい','多様':'たよう','菓子':'かし','目眩':'めまい','調理師':'ちょうりし','栄養士':'えいようし','年齢':'ねんれい','歯磨き':'はみがき','錠剤':'じょうざい','災害':'さいがい','断水':'だんすい','登山':'とざん','記録':'きろく','公開':'こうかい','助かる':'たすかる','捻挫':'ねんざ','治らない':'なおらない','欠かせない':'かかせない','動画':'どうが','出かける':'でかける','生きて':'いきて','決めた以上':'きめたいじょう','三日間':'みっかかん','犬':'いぬ','世話':'せわ','朝晩':'あさばん','誰':'だれ','私':'わたし','初め':'はじめ','一緒に':'いっしょに','店':'みせ','腫れ':'はれ','得点':'とくてん','責任':'せきにん','改善':'かいぜん','講師':'こうし','担当者':'たんとうしゃ','都心':'としん','生産':'せいさん','販売':'はんばい','経営者':'けいえいしゃ','地元':'じもと','売店':'ばいてん','体を拭く':'からだをふく','海外':'かいがい','新入社員':'しんにゅうしゃいん','自主的':'じしゅてき','市民講座':'しみんこうざ','作業':'さぎょう','解釈':'かいしゃく','才能':'さいのう','感性':'かんせい','飼い主':'かいぬし','散歩':'さんぽ','材料':'ざいりょう','正月':'しょうがつ','予定':'よてい','二日間':'ふつかかん','便利':'べんり','優勝':'ゆうしょう','元気':'げんき','先日':'せんじつ','先週':'せんしゅう','刺激':'しげき','十分':'じゅうぶん','原因':'げんいん','参加':'さんか','可能':'かのう','各':'かく','味付け':'あじつけ','営業':'えいぎょう','回数':'かいすう','地球':'ちきゅう','大丈夫':'だいじょうぶ','大好き':'だいすき','娘':'むすめ','安心':'あんしん','実感':'じっかん','宿泊':'しゅくはく','寂しい':'さびしい','小田':'おだ','小規模':'しょうきぼ','少量':'しょうりょう','山下':'やました','年間':'ねんかん','弱い':'よわい','強い':'つよい','役立つ':'やくだつ','心強い':'こころづよい','心配':'しんぱい','残念':'ざんねん','慌しい':'あわただしい','慣れる':'なれる','成分':'せいぶん','戦う':'たたかう','戻る':'もどる','指導':'しどう','捨てる':'すてる','数回':'すうかい','新商品':'しんしょうひん','昼食':'ちゅうしょく','暖かい':'あたたかい','期待':'きたい','村野':'むらの','来年':'らいねん','東高原':'ひがしこうげん','栽培':'さいばい','桜':'さくら','模写':'もしゃ','機械':'きかい','正解':'せいかい','母親':'ははおや','毎日':'まいにち','相談':'そうだん','真似':'まね','知る':'しる','確認':'かくにん','練習':'れんしゅう','考える':'かんがえる','育てる':'そだてる','自慢':'じまん','見送る':'みおくる','説明会':'せつめいかい','課長':'かちょう','貴重':'きちょう','近く':'ちかく','連絡':'れんらく','避ける':'さける','部屋':'へや','醤油':'しょうゆ','隣町':'となりまち','集中':'しゅうちゅう','非常':'ひじょう','面白い':'おもしろい','風呂':'ふろ','飼う':'かう','養う':'やしなう','駅前':'えきまえ','高い':'たかい','読んだ':'よんだ','勧められた':'すすめられた','入れさせない':'いれさせない','選手たち':'せんしゅたち','喜ばせる':'よろこばせる','悪くなる':'わるくなる','鑑賞方法':'かんしょうほうほう','我慢':'がまん','母国':'ぼこく','回収箱':'かいしゅうばこ','共通点':'きょうつうてん','若':'わか','絵画':'かいが'};
+let FURI_KEYS=Object.keys(FURI).sort((a,b)=>b.length-a.length);
+
+Object.assign(FURI,{'合唱':'がっしょう','発表会':'はっぴょうかい','山田':'やまだ','年生':'ねんせい','係':'かかり','分担':'ぶんたん','配る':'くばる','見直す':'みなおす','関係者':'かんけいしゃ','案内':'あんない','曲':'きょく','今週中':'こんしゅうちゅう','映画館':'えいがかん','中山':'なかやま','入口':'いりぐち','販売':'はんばい','客':'きゃく','対応':'たいおう','丁寧':'ていねい','昼休み':'ひるやすみ','清掃':'せいそう','劇場内':'げきじょうない','座席':'ざせき','床':'ゆか','開始':'かいし','大学院':'だいがくいん','留学生':'りゅうがくせい','支援':'しえん','必要':'ひつよう','市役所':'しやくしょ','国際課':'こくさいか','小学生':'しょうがくせい','履歴書':'りれきしょ','提出':'ていしゅつ','日時':'にちじ','調整':'ちょうせい','返信':'へんしん','個別':'こべつ','前回':'ぜんかい','社会':'しゃかい','関心':'かんしん','資料':'しりょう','調べた':'しらべた','原稿':'げんこう','全員':'ぜんいん','整理':'せいり','次回':'じかい','取り掛か':'とりかか','宿泊客':'しゅくはくきゃく','秋':'あき','企画案':'きかくあん','去年':'きょねん','植物':'しょくぶつ','置き物':'おきもの','体験':'たいけん','飾りつけ':'かざりつけ','今年':'ことし','夕食後':'ゆうしょくご','紅葉':'こうよう','夕食前':'ゆうしょくまえ'});
+Object.assign(FURI,{'商品':'しょうひん','携帯電話':'けいたいでんわ','話題':'わだい','有名':'ゆうめい','俳優':'はいゆう','宣伝':'せんでん','歌手':'かしゅ','吉田':'よしだ','購入':'こうにゅう','企業':'きぎょう','実習':'じっしゅう','食品':'しょくひん','関連':'かんれん','有利':'ゆうり','実習先':'じっしゅうさき','職場':'しょくば','具体的':'ぐたいてき','得意':'とくい','自己分析':'じこぶんせき','自信':'じしん','発揮':'はっき','繋げ':'つなげ','文字':'もじ','簡潔':'かんけつ','言葉':'ことば','聞き手':'ききて','立場':'たちば','意識':'いしき','社内':'しゃない','営業先':'えいぎょうさき','異なる':'ことなる','忘れ':'わすれ','際':'さい','視点':'してん','欠かす':'かかす','家具':'かぐ','魅力':'みりょく','棚':'たな','椅子':'いす','近頃':'ちかごろ','値段':'ねだん','本当':'ほんとう','欲しい':'ほしい','考えた':'かんがえた','頭':'あたま','浮かんだ':'うかんだ','完成':'かんせい','過程':'かてい','一気':'いっき','難しい':'むずかしい','楽しい':'たのしい','陸上競技':'りくじょうきょうぎ','大会':'たいかい','女子':'じょし','酒井':'さかい','自身':'じしん','最後':'さいご','思い切って':'おもいきって','効いた':'きいた','段階':'だんかい','維持':'いじ','風':'かぜ','途中':'とちゅう','先頭':'せんとう','国際協力':'こくさいきょうりょく','勉強会':'べんきょうかい','加藤':'かとう','進行役':'しんこうやく','参加者':'さんかしゃ','反応':'はんのう','論文':'ろんぶん','卒業':'そつぎょう','先輩':'せんぱい','海外ボランティア':'かいがいボランティア','教室':'きょうしつ','意見交換':'いけんこうかん','余裕':'よゆう','設定':'せってい','授業':'じゅぎょう','遅れて':'おくれて','負担':'ふたん','記事':'きじ','能力':'のうりょく','高められる':'たかめられる','生活':'せいかつ','強み':'つよみ','伝えたい':'つたえたい','表現':'ひょうげん','聞く':'きく','形':'かたち','解消':'かいしょう','加速':'かそく','一度':'いちど','借りた':'かりた','開始時間':'かいしじかん','事前':'じぜん'});
+FURI_KEYS=Object.keys(FURI).sort((a,b)=>b.length-a.length);
+const RUBY_DISPLAY={
+
+  '受け取り':[['受','う'], 'け', ['取','と'], 'り'],
+  '受け取りに行く':[['受','う'],'け',['取','と'],'りに',['行','い'],'く'],
+  'メッセージカードを準備する':['メッセージカードを',['準備','じゅんび'],'する'],
+  '料理を予約する':[['料理','りょうり'],'を',['予約','よやく'],'する'],
+  'スピーチを依頼する':['スピーチを',['依頼','いらい'],'する'],
+
+  '母国':[['母国','ぼこく']],
+  '紹介する':[['紹介','しょうかい'],'する'],
+  '文化の違い':[['文化','ぶんか'],'の',['違','ちが'],'い'],
+  '話す':[['話','はな'],'す'],
+  '話し合う':[['話','はな'],'し',['合','あ'],'う'],
+  '教える':[['教','おし'],'える'],
+  '予約する':[['予約','よやく'],'する'],
+  '作成する':[['作成','さくせい'],'する'],
+  '行く':[['行','い'],'く'],
+  '入れる':[['入','い'],'れる'],
+  '出す':[['出','だ'],'す'],
+  '持っていく':[['持','も'],'っていく'],
+  '強くする':[['強','つよ'],'くする'],
+  '使える':[['使','つか'],'える'],
+  '生まれた':[['生','う'],'まれた'],
+  '辞めた':[['辞','や'],'めた'],
+  '泣ける':[['泣','な'],'ける'],
+  '買った':[['買','か'],'った'],
+  '出てくれる':[['出','で'],'てくれる'],
+  'お願いしましょう':[['お願','ねが'],'いしましょう'],
+  '止まない':[['止','や'],'まない'],
+  '怒る':[['怒','おこ'],'る'],
+  '済んで':[['済','す'],'んで'],
+
+  '誰か':[['誰','だれ'],'か'],
+  '来てもらう':[['来','き'],'てもらう'],
+  '来てもらいます':[['来','き'],'てもらいます'],
+  '心強い':[['心強','こころづよ'],'い'],
+  '見ても':[['見','み'],'ても'],
+  '見た':[['見','み'],'た'],
+  '言って':[['言','い'],'って'],
+  '言っています':[['言','い'],'っています'],
+  '思う':[['思','おも'],'う'],
+  '思います':[['思','おも'],'います'],
+  '食べたい':[['食','た'],'べたい'],
+  '食べて':[['食','た'],'べて'],
+  '始めた':[['始','はじ'],'めた'],
+  '始められた':[['始','はじ'],'められた'],
+  '教えて':[['教','おし'],'えて'],
+  '教えてくれた':[['教','おし'],'えてくれた'],
+  '読んだ':[['読','よ'],'んだ'],
+  '勧められた':[['勧','すす'],'められた'],
+  '生えて':[['生','は'],'えて'],
+  '入った':[['入','はい'],'った'],
+  '貸し出して':[['貸','か'],'し',['出','だ'],'して'],
+  '悪くなる':[['悪','わる'],'くなる'],
+  '防ぐ':[['防','ふせ'],'ぐ'],
+  '役に立つ':[['役','やく'],'に',['立','た'],'つ'],
+  '描く':[['描','えが'],'く'],
+  '写す':[['写','うつ'],'す'],
+  '増える':[['増','ふ'],'える'],
+  '出かける':[['出','で'],'かける'],
+  '辞める':[['辞','や'],'める'],
+  '決めた':[['決','き'],'めた'],
+  '怒らず':[['怒','おこ'],'らず'],
+  '預ける':[['預','あず'],'ける'],
+  '買って':[['買','か'],'って'],
+  '探して':[['探','さが'],'して'],
+  '生きて':[['生','い'],'きて'],
+  '育てた':[['育','そだ'],'てた'],
+  '振り返って':[['振','ふ'],'り',['返','かえ'],'って'],
+  '学べる':[['学','まな'],'べる'],
+  '治らない':[['治','なお'],'らない'],
+  '欠かせない':[['欠','か'],'かせない'],
+  '飼う':[['飼','か'],'う'],
+  '育てる':[['育','そだ'],'てる'],
+  '考える':[['考','かんが'],'える'],
+  '見送る':[['見送','みおく'],'る'],
+  '頼む':[['頼','たの'],'む'],
+  '捨てる':[['捨','す'],'てる'],
+  '戻る':[['戻','もど'],'る'],
+  '慣れる':[['慣','な'],'れる'],
+  '戦う':[['戦','たたか'],'う'],
+  '避ける':[['避','さ'],'ける'],
+  '助かる':[['助','たす'],'かる'],
+  '困る':[['困','こま'],'る'],
+  '止めば':[['止','や'],'めば']
+};
+function rubyParts(parts){
+  return parts.map(x=>Array.isArray(x)
+    ? `<ruby>${esc(x[0])}<rt>${esc(x[1])}</rt></ruby>`
+    : esc(x)).join('');
+}
+
+
+let rubyFixes={};
+function rubyFixKey(qid,pi,surface){return `${qid}::${pi}::${surface}`}
+function loadRubyFixes(){try{rubyFixes=JSON.parse(localStorage.getItem('jlpt-ruby-fixes-v1')||'{}')||{}}catch(e){rubyFixes={}}}
+function saveRubyFixes(){localStorage.setItem('jlpt-ruby-fixes-v1',JSON.stringify(rubyFixes))}
+
+function rubyChoiceFixKey(qid,ci,surface){return `${qid}::choice${ci}::${surface}`}
+function rubyChoiceWithContext(s='',qid='',ci=-1){
+  const cq=(db&&db.questions)?db.questions.find(x=>x.id===qid):null;
+  const alwaysRuby=!!(cq&&['p1','p2','p5'].includes(cq.section));
+  if(!furiganaOn && !alwaysRuby)return esc(s);
+  let out=rubyText(s,true), prefix=`${qid}::choice${ci}::`;
+  for(const [key,reading] of Object.entries(rubyFixes)){
+    if(!key.startsWith(prefix))continue;
+    const surface=key.slice(prefix.length);
+    if(!surface)continue;
+    const auto=rubyText(surface,true);
+    if(reading==='__NO_RUBY__'){
+      if(out.includes(auto)) out=out.split(auto).join(esc(surface));
+      continue;
+    }
+    const manual=`<ruby>${esc(surface)}<rt>${esc(reading)}</rt></ruby>`;
+    if(out.includes(auto)) out=out.split(auto).join(manual);
+    else if(out.includes(esc(surface))) out=out.split(esc(surface)).join(manual);
+  }
+  return out;
+}
+function extractRubyItems(text){
+  const html=rubyText(text,true), items=[];
+  const re=/<ruby>(.*?)<rt>(.*?)<\/rt><\/ruby>/g; let m;
+  while((m=re.exec(html))!==null){
+    const surface=m[1].replace(/<[^>]+>/g,''), reading=m[2].replace(/<[^>]+>/g,'');
+    if(surface&&!items.some(x=>x.surface===surface))items.push({surface,reading});
+  }
+  return items;
+}
+function wireChoiceRubyFix(q){
+  document.querySelectorAll('#choiceGrid .choice').forEach((el,ci)=>{
+    if(el.querySelector('.choiceRubyFix'))return;
+    const b=document.createElement('button');
+    b.type='button'; b.className='btn rubyFixBtn choiceRubyFix'; b.textContent='ルビ編集';
+    b.onclick=(ev)=>{
+      ev.preventDefault();ev.stopPropagation();
+      const old=document.querySelector('.choiceRubyEditor'); if(old)old.remove();
+      const c=(q.choices||[])[ci]||'', prefix=`${q.id}::choice${ci}::`;
+      const autoItems=extractRubyItems(c);
+      const manualItems=Object.entries(rubyFixes)
+        .filter(([k])=>k.startsWith(prefix))
+        .map(([k,v])=>({surface:k.slice(prefix.length),reading:v,manual:true}));
+      const map=new Map();
+      autoItems.forEach(x=>map.set(x.surface,{...x,manual:false}));
+      manualItems.forEach(x=>map.set(x.surface,x));
+      const items=[...map.values()];
+
+      const box=document.createElement('div');
+      box.className='rubyFixPanel choiceRubyEditor';
+      const row=x=>`<div class="rubyFixRow">
+        <input class="rfSurface" placeholder="漢字・語句" value="${esc(x.surface||'')}">
+        <input class="rfReading" placeholder="読み" value="${esc(x.reading||'')}">
+        <button class="btn rfDel" type="button">削除</button>
+      </div>`;
+      box.innerHTML=`<div class="muted">既存ルビを修正できます。足りないルビは「＋ルビ追加」で追加できます。</div>
+        <div class="rfRows">${items.map(row).join('')}</div>
+        <div class="row">
+          <button class="btn rfAdd" type="button">＋ルビ追加</button>
+          <button class="btn primary rfSave" type="button">一括保存</button>
+          <button class="btn rfReset" type="button">全部元に戻す</button>
+          <button class="btn rfClose" type="button">閉じる</button>
+        </div>`;
+      el.after(box);
+
+      const wireDelete=()=>box.querySelectorAll('.rfDel').forEach(x=>x.onclick=e=>{
+        e.preventDefault();e.stopPropagation();x.closest('.rubyFixRow').remove();
+      });
+      wireDelete();
+
+      box.querySelector('.rfAdd').onclick=e=>{
+        e.preventDefault();e.stopPropagation();
+        box.querySelector('.rfRows').insertAdjacentHTML('beforeend',row({surface:'',reading:''}));
+        wireDelete();
+      };
+
+      box.querySelector('.rfSave').onclick=e=>{
+        e.preventDefault();e.stopPropagation();
+        Object.keys(rubyFixes).filter(k=>k.startsWith(prefix)).forEach(k=>delete rubyFixes[k]);
+        const kept=new Set();
+        box.querySelectorAll('.rubyFixRow').forEach(r=>{
+          const s=r.querySelector('.rfSurface').value.trim();
+          const rd=r.querySelector('.rfReading').value.trim();
+          if(!s||!rd||!c.includes(s))return;
+          kept.add(s);
+          const base=autoItems.find(y=>y.surface===s);
+          if(!base || rd!==base.reading) rubyFixes[rubyChoiceFixKey(q.id,ci,s)]=rd;
+        });
+        // Deleted auto-ruby entries are stored as suppression markers.
+        autoItems.forEach(x=>{
+          if(!kept.has(x.surface)) rubyFixes[rubyChoiceFixKey(q.id,ci,x.surface)]='__NO_RUBY__';
+        });
+        saveRubyFixes();render();
+      };
+
+      box.querySelector('.rfReset').onclick=e=>{
+        e.preventDefault();e.stopPropagation();
+        Object.keys(rubyFixes).filter(k=>k.startsWith(prefix)).forEach(k=>delete rubyFixes[k]);
+        saveRubyFixes();render();
+      };
+      box.querySelector('.rfClose').onclick=e=>{e.preventDefault();e.stopPropagation();box.remove()};
+    };
+    el.appendChild(b);
+  });
+}
+function rubyWithContext(s='',qid='',pi=-1){
+  if(!furiganaOn)return esc(s);
+  let out=rubyText(s,true), prefix=`${qid}::${pi}::`;
+  for(const [key,reading] of Object.entries(rubyFixes)){
+    if(!key.startsWith(prefix))continue;
+    const surface=key.slice(prefix.length);
+    if(!surface)continue;
+    const auto=rubyText(surface,true);
+    if(reading==='__NO_RUBY__'){
+      if(out.includes(auto)) out=out.split(auto).join(esc(surface));
+      continue;
+    }
+    const manual=`<ruby>${esc(surface)}<rt>${esc(reading)}</rt></ruby>`;
+    if(out.includes(auto)) out=out.split(auto).join(manual);
+    else if(out.includes(esc(surface))) out=out.split(esc(surface)).join(manual);
+  }
+  return out;
+}
+
+function rubyText(s='',force=false){
+  if(!furiganaOn && !force)return esc(s);
+  s=String(s);let out='',i=0;
+  const specialKeys=Object.keys(RUBY_DISPLAY).sort((a,b)=>b.length-a.length);
+  while(i<s.length){
+    let sp='';
+    for(const k of specialKeys){if(s.startsWith(k,i)){sp=k;break}}
+    if(sp){out+=rubyParts(RUBY_DISPLAY[sp]);i+=sp.length;continue}
+    let hit='';
+    for(const k of FURI_KEYS){if(s.startsWith(k,i)){hit=k;break}}
+    if(hit){
+      // Never place ruby over kana-only text. Ordinary dictionary entries are
+      // still used for pure-kanji words; mixed kanji+kana forms belong above.
+      if(/^[一-龯々]+$/.test(hit)){
+        out+=`<ruby>${esc(hit)}<rt>${esc(FURI[hit])}</rt></ruby>`;
+      }else{
+        out+=esc(hit);
+      }
+      i+=hit.length;
+    } else out+=esc(s[i++]);
+  }
+  return out;
+}
+
+function renderPairs(q){
+  const pairs=makePairs(q);
+  $('#jp').innerHTML=pairs.map((p,i)=>`<div class="pairrow"><div class="pairhead"><span class="speaker">${esc(p.speaker)}</span><span class="sentno">${i+1}文目</span><button class="btn rubyFixBtn" type="button" data-rfix="${i}">ルビ修正</button></div><div class="pairja">${rubyWithContext(p.ja,q.id,i)}</div><div class="rubyFixPanel hidden" id="rfix-${i}"></div></div>`).join('');
+  document.querySelectorAll('[data-rfix]').forEach(btn=>btn.onclick=()=>{
+    const pi=Number(btn.dataset.rfix), panel=$(`#rfix-${pi}`), pair=pairs[pi];
+    panel.classList.toggle('hidden'); if(panel.classList.contains('hidden'))return;
+    const prefix=`${q.id}::${pi}::`;
+    const autoItems=extractRubyItems(pair.ja);
+    const manualItems=Object.entries(rubyFixes).filter(([k])=>k.startsWith(prefix)).map(([k,v])=>({surface:k.slice(prefix.length),reading:v,manual:true}));
+    const map=new Map(); autoItems.forEach(x=>map.set(x.surface,{...x,manual:false})); manualItems.forEach(x=>map.set(x.surface,x));
+    const items=[...map.values()].filter(x=>x.reading!=='__NO_RUBY__');
+    const row=x=>`<div class="rubyFixRow"><input class="rfSurface" placeholder="漢字・語句" value="${esc(x.surface||'')}"><input class="rfReading" placeholder="読み" value="${esc(x.reading||'')}"><button class="btn rfDel" type="button">削除</button></div>`;
+    panel.innerHTML=`<div class="muted">既存ルビの訂正・削除ができます。足りないルビは「＋ルビ追加」で追加し、最後に「一括保存」を押してください。</div><div class="rfRows">${items.map(row).join('')}</div><div class="row"><button class="btn rfAdd" type="button">＋ルビ追加</button><button class="btn primary rfSave" type="button">一括保存</button><button class="btn rfReset" type="button">全部元に戻す</button><button class="btn rfClose" type="button">閉じる</button></div>`;
+    const wireDelete=()=>panel.querySelectorAll('.rfDel').forEach(x=>x.onclick=()=>x.closest('.rubyFixRow').remove()); wireDelete();
+    panel.querySelector('.rfAdd').onclick=()=>{panel.querySelector('.rfRows').insertAdjacentHTML('beforeend',row({surface:'',reading:''}));wireDelete()};
+    panel.querySelector('.rfSave').onclick=()=>{
+      Object.keys(rubyFixes).filter(k=>k.startsWith(prefix)).forEach(k=>delete rubyFixes[k]);
+      const kept=new Set();
+      panel.querySelectorAll('.rubyFixRow').forEach(r=>{const sf=r.querySelector('.rfSurface').value.trim(),rd=r.querySelector('.rfReading').value.trim();if(!sf||!rd||!pair.ja.includes(sf))return;kept.add(sf);const base=autoItems.find(y=>y.surface===sf);if(!base||rd!==base.reading)rubyFixes[rubyFixKey(q.id,pi,sf)]=rd});
+      autoItems.forEach(x=>{if(!kept.has(x.surface))rubyFixes[rubyFixKey(q.id,pi,x.surface)]='__NO_RUBY__'});
+      saveRubyFixes();renderPairs(q);
+    };
+    panel.querySelector('.rfReset').onclick=()=>{Object.keys(rubyFixes).filter(k=>k.startsWith(prefix)).forEach(k=>delete rubyFixes[k]);saveRubyFixes();renderPairs(q)};
+    panel.querySelector('.rfClose').onclick=()=>panel.classList.add('hidden');
+  });
+  $('#th').innerHTML=pairs.map((p,i)=>`<div class="pairrow"><div class="pairhead"><span class="speaker">${esc(p.speaker)}</span><span class="sentno">${i+1}文目</span></div><div class="pairja">${esc(p.ja)}</div><div class="pairth">${esc(p.th)}</div></div>`).join('');
+}
+function renderSentenceEditor(){
+  const w=$('#sentenceEditor');w.innerHTML='';
+  editPairs.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='editline';
+    row.innerHTML=`<div><select data-role="speaker"><option>N</option><option>M</option><option>F</option></select><div class="sentno">${i+1}文目</div><button type="button" class="btn danger" data-remove="${i}" style="margin-top:7px;width:100%">削除</button></div><div class="editpair"><div><div class="mini">日本語原文</div><textarea data-role="ja">${esc(p.ja)}</textarea></div><div><div class="mini">タイ語訳</div><textarea data-role="th">${esc(p.th)}</textarea></div></div>`;
+    row.querySelector('select').value=p.speaker||'M';w.appendChild(row)
+  });
+  w.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{syncEditPairs();editPairs.splice(Number(b.dataset.remove),1);renderSentenceEditor();commitEditorToQuestion();scheduleSave()});
+}
+function syncEditPairs(){
+  const rows=[...$('#sentenceEditor').children];
+  editPairs=rows.map(r=>({speaker:r.querySelector('[data-role="speaker"]').value,ja:r.querySelector('[data-role="ja"]').value,th:r.querySelector('[data-role="th"]').value}))
+}
+function pairsToText(pairs,key){return pairs.map(p=>`${p.speaker}：${p[key]||''}`).join('\n')}
+function ensureChoices(q){if(!Array.isArray(q.choices))q.choices=['','','',''];while(q.choices.length<4)q.choices.push('');q.choices=q.choices.slice(0,4)}
+function renderChoices(q){
+  const labels=['1','2','3','4'];
+  if(Array.isArray(q.subQuestions)&&q.subQuestions.length){
+    $('#choiceGrid').innerHTML=q.subQuestions.map((sq,si)=>{
+      const choices=Array.isArray(sq.choices)?sq.choices:['','','',''];
+      return `<div class="subq" style="grid-column:1/-1"><div class="subqtitle">${esc(sq.label||('質問'+(si+1)))}</div><div class="subqprompt">${esc(sq.prompt||'')}</div><div class="choicegrid">${choices.map((c,i)=>{const empty=!String(c||'').trim();return `<div class="choice${empty?' empty':''}"><div class="choiceNo">${labels[i]}</div><div class="choiceText">${empty?'未入力':rubyChoiceWithContext(c,q.id,i)}</div></div>`}).join('')}</div></div>`;
+    }).join('');
+    return;
+  }
+  ensureChoices(q);
+  $('#choiceGrid').innerHTML=q.choices.map((c,i)=>{const empty=!String(c||'').trim();return `<div class="choice${empty?' empty':''}"><div class="choiceNo">${labels[i]}</div><div class="choiceText">${empty?'未入力':rubyChoiceWithContext(c,q.id,i)}</div></div>`}).join('');
+  wireChoiceRubyFix(q)
+}
+function syncToggleStates(){document.querySelectorAll('.toggle').forEach(b=>{const p=document.getElementById(b.dataset.target);if(p)b.classList.toggle('open',!p.classList.contains('hidden'))})}
+
+function renderSubQuestionEditors(q){
+  const w=$('#subQuestionEditors');w.innerHTML='';
+  (q.subQuestions||[]).forEach((sq,si)=>{
+    const d=document.createElement('div');d.className='multiEdit';
+    d.innerHTML=`<div class="field"><label>${esc(sq.label||('質問'+(si+1)))}・設問文</label><textarea data-sq="${si}" data-k="prompt">${esc(sq.prompt||'')}</textarea></div>
+    <div class="field"><label>正解番号</label><input data-sq="${si}" data-k="answer" value="${esc(sq.answer||'')}"></div>
+    ${[0,1,2,3].map(i=>`<div class="choiceedit"><div class="num">${i+1}</div><textarea data-sq="${si}" data-choice="${i}" placeholder="選択肢${i+1}">${esc((sq.choices||[])[i]||'')}</textarea></div>`).join('')}`;
+    w.appendChild(d)
+  })
+}
+function syncSubQuestionEditors(q){
+  if(!Array.isArray(q.subQuestions))return;
+  q.subQuestions.forEach((sq,si)=>{
+    const p=document.querySelector(`[data-sq="${si}"][data-k="prompt"]`);
+    const a=document.querySelector(`[data-sq="${si}"][data-k="answer"]`);
+    if(p)sq.prompt=p.value;if(a)sq.answer=a.value;
+    sq.choices=[0,1,2,3].map(i=>{const e=document.querySelector(`[data-sq="${si}"][data-choice="${i}"]`);return e?e.value:''})
+  })
+}
+
+function commitEditorToQuestion(){
+  if(!db || !$('#main').classList.contains('editing')) return;
+  const q=qs()[idx]; if(!q) return;
+  syncEditPairs();if(Array.isArray(q.subQuestions)){syncSubQuestionEditors(q)}else{ensureChoices(q);}
+  q.id=$('#eId').value;q.answer=$('#eAns').value;q.prompt=$('#ePrompt').value;q.promptTh=$('#ePromptTh').value;
+  if(!Array.isArray(q.subQuestions))q.choices=[$('#eChoice1').value,$('#eChoice2').value,$('#eChoice3').value,$('#eChoice4').value];
+  q.jp=pairsToText(editPairs,'ja');q.th=pairsToText(editPairs,'th');q.ex=$('#eEx').value;q.kw=$('#eKw').value;
+}
+
+let currentAudioObjectUrl=null;
+async function setAudioSource(q){
+  const audio=$('#audio');
+  if(currentAudioObjectUrl){
+    try{URL.revokeObjectURL(currentAudioObjectUrl)}catch(e){}
+    currentAudioObjectUrl=null;
+  }
+  if(q.audioKey){
+    try{
+      const blob=await idbGet('audio',q.audioKey);
+      if(blob){
+        currentAudioObjectUrl=URL.createObjectURL(blob);
+        audio.src=currentAudioObjectUrl;
+        return;
+      }
+    }catch(e){}
+  }
+  audio.src=q.audio||'';
+}
+async function saveAudioBlob(q,file){
+  const key='audio:'+q.id;
+  await idbSet('audio',key,file);
+  q.audioKey=key;
+  return key;
+}
+
+function render(){
+  const list=qs(),w=$('#chips');w.innerHTML='';
+  list.forEach((q,i)=>{let b=document.createElement('button');b.className='chip'+(i===idx?' active':'');b.textContent=q.no;b.onclick=()=>{commitEditorToQuestion();scheduleSave();idx=i;render()};w.appendChild(b)});
+  if(!list.length){$('#empty').classList.remove('hidden');$('#content').classList.add('hidden');return}
+  $('#empty').classList.add('hidden');$('#content').classList.remove('hidden');
+  idx=Math.min(idx,list.length-1);let q=list[idx],s=db.sections.find(x=>x.id===sec);
+  if(sec==='p3'||sec==='p4'||(sec==='p5' && q.no===1)){
+    // 問題3・問題4に加え、問題5-1も本番形式では選択肢を初期非表示にする。
+    p3ChoicesShown=false;
+    $('#choiceCard').classList.add('hidden');
+    $('#p3ChoiceControl').classList.remove('hidden');
+    $('#toggleP3Label').textContent='選択肢を確認する';
+    $('#toggleP3Choices').classList.remove('open');
+  }else{
+    $('#choiceCard').classList.remove('hidden');
+    $('#p3ChoiceControl').classList.add('hidden');
+  }
+  $('#main').classList.remove('editing');
+  $('#crumb').textContent=`N2 ＞ ${sessionLabels[currentSession]} ＞ ${s.label}（${s.name}） ＞ ${q.no}番`;
+  $('#qid').textContent=q.displayId||q.id;renderChoices(q);
+  const iw=$('#questionImageWrap'),im=$('#questionImage'); if(q.image){iw.classList.remove('hidden');im.src=q.image;im.onclick=()=>window.open(q.image,'_blank')}else{iw.classList.add('hidden');im.removeAttribute('src');im.onclick=null}
+  setAudioSource(q);renderPairs(q);
+  ['jp','th','ex'].forEach(id=>$('#'+id).classList.add('hidden'));syncToggleStates();
+  $('#answerInside').textContent=Array.isArray(q.subQuestions)?q.subQuestions.map(s=>`${s.label||'質問'}：${s.answer}`).join('／'):'正解：'+q.answer;$('#explain').textContent=q.ex;$('#keywords').textContent='キーワード：'+q.kw;
+  $('#prev').disabled=idx===0;$('#next').disabled=idx===list.length-1;
+}
+document.querySelectorAll('.toggle').forEach(b=>b.addEventListener('click',()=>{const panel=$('#'+b.dataset.target);if(!panel)return;const willOpen=panel.classList.contains('hidden');panel.classList.toggle('hidden');b.classList.toggle('open',willOpen)}));
+document.querySelectorAll('.speed').forEach(b=>b.onclick=()=>{$('#audio').playbackRate=parseFloat(b.dataset.speed);document.querySelectorAll('.speed').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+$('#back').onclick=()=>$('#audio').currentTime=Math.max(0,$('#audio').currentTime-10);
+$('#forward').onclick=()=>$('#audio').currentTime=Math.min($('#audio').duration||99999,$('#audio').currentTime+10);
+$('#prev').onclick=()=>{if(idx){commitEditorToQuestion();scheduleSave();idx--;render()}};
+$('#next').onclick=()=>{if(idx<qs().length-1){commitEditorToQuestion();scheduleSave();idx++;render()}};
+
+$('#edit').onclick=()=>{
+  let q=qs()[idx];$('#main').classList.add('editing');
+  $('#eId').value=q.id;$('#eAns').value=q.answer||'';$('#ePrompt').value=q.prompt||'';$('#ePromptTh').value=q.promptTh||'';
+  if(Array.isArray(q.subQuestions)&&q.subQuestions.length){
+    $('#singleChoiceEditor').classList.add('hidden');$('#multiChoiceEditor').classList.remove('hidden');renderSubQuestionEditors(q)
+  }else{
+    ensureChoices(q);$('#singleChoiceEditor').classList.remove('hidden');$('#multiChoiceEditor').classList.add('hidden');
+    $('#eChoice1').value=q.choices[0]||'';$('#eChoice2').value=q.choices[1]||'';$('#eChoice3').value=q.choices[2]||'';$('#eChoice4').value=q.choices[3]||''
+  }
+  $('#eEx').value=q.ex;$('#eKw').value=q.kw;editPairs=makePairs(q);renderSentenceEditor()
+};
+$('#cancel').onclick=()=>{$('#main').classList.remove('editing');render()};
+$('#save').onclick=async()=>{
+  commitEditorToQuestion();
+  const f=$('#eAudio').files[0];
+  if(f){
+    const q=qs()[idx];
+    try{
+      await saveAudioBlob(q,f);
+      $('#eAudio').value='';
+    }catch(e){
+      console.error(e);
+      alert('音声の保存に失敗しました');
+    }
+  }
+  await persistNow();render()
+};
+$('#dup').onclick=()=>{commitEditorToQuestion();let list=qs(),q=deepClone(list[idx]),n=Math.max(...list.map(x=>x.no),0)+1;q.no=n;q.id=`問題${sec.slice(1)}-${n}`;db.questions.push(q);idx=qs().length-1;scheduleSave();render()};
+$('#del').onclick=()=>{if(!confirm('この小問を削除しますか？'))return;let q=qs()[idx];db.deletedQuestionIds=db.deletedQuestionIds||[];if(!db.deletedQuestionIds.includes(q.id))db.deletedQuestionIds.push(q.id);db.questions=db.questions.filter(x=>x!==q);idx=Math.max(0,idx-1);scheduleSave();render()};
+$('#addSentence').onclick=()=>{syncEditPairs();editPairs.push({speaker:'M',ja:'',th:''});renderSentenceEditor();commitEditorToQuestion();scheduleSave()};
+
+const editWrap=document.querySelector('.editwrap');
+editWrap.addEventListener('input',()=>{commitEditorToQuestion();scheduleSave()});
+editWrap.addEventListener('change',e=>{if(e.target.id!=='eAudio'){commitEditorToQuestion();scheduleSave()}});
+
+$('#manualSave').onclick=async()=>{commitEditorToQuestion();await persistNow()};
+$('#backup').onclick=async()=>{
+  commitEditorToQuestion();
+  await persistNow(true);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));
+  a.download=`JLPT_Studio_backup_${stamp}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$('#export').onclick=()=>{commitEditorToQuestion();let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='JLPT_N2_2026-07.json';a.click()};
+$('#import').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const incoming=JSON.parse(await f.text());
+    if(!confirm('現在の教材データをバックアップして、このJSONで復元しますか？'))return;
+    db=mergeSeed(currentSeed(),incoming);
+    await idbSet('kv','dataset:'+currentSession,deepClone(db));sec='p1';idx=0;sections();render();setStatus('● 復元済み','saved')
+  }catch(e){alert('JSONを読み込めませんでした')}
+  e.target.value='';
+};
+
+window.addEventListener('beforeunload',()=>{commitEditorToQuestion()});
+
+$('#toggleP3Choices').onclick=()=>{
+  p3ChoicesShown=!p3ChoicesShown;
+  $('#choiceCard').classList.toggle('hidden',!p3ChoicesShown);
+  $('#toggleP3Label').textContent=p3ChoicesShown?'選択肢を隠す':'選択肢を確認する';
+  $('#toggleP3Choices').classList.toggle('open',p3ChoicesShown);
+};
+
+$('#furiganaToggle').onclick=()=>{
+  furiganaOn=!furiganaOn;
+  const b=$('#furiganaToggle');
+  b.textContent=furiganaOn?'ふりがな ON':'ふりがな OFF';
+  b.classList.toggle('on',furiganaOn);
+  const q=qs()[idx];
+  if(q)render();
+};
+
+loadRubyFixes();
+
+// v0.12.8 display settings
+const DISPLAY_SETTINGS_KEY='jlpt-display-settings-v1';
+const DISPLAY_DEFAULTS={font:'system',text:18,choice:17,thai:16,ruby:58,line:175};
+let displayPrefs={...DISPLAY_DEFAULTS};
+function loadDisplayPrefs(){try{displayPrefs={...DISPLAY_DEFAULTS,...JSON.parse(localStorage.getItem(DISPLAY_SETTINGS_KEY)||'{}')}}catch(e){displayPrefs={...DISPLAY_DEFAULTS}};applyDisplayPrefs();syncDisplayControls()}
+function saveDisplayPrefs(){localStorage.setItem(DISPLAY_SETTINGS_KEY,JSON.stringify(displayPrefs))}
+function applyDisplayPrefs(){const r=document.documentElement;r.style.setProperty('--study-font-size',displayPrefs.text+'px');r.style.setProperty('--choice-font-size',displayPrefs.choice+'px');r.style.setProperty('--thai-font-size',displayPrefs.thai+'px');r.style.setProperty('--ruby-scale',displayPrefs.ruby/100);r.style.setProperty('--study-line-height',displayPrefs.line/100);document.body.classList.remove('font-system','font-gothic','font-mincho','font-kyokasho');document.body.classList.add('font-'+displayPrefs.font)}
+function syncDisplayControls(){const ids={dsFont:'font',dsText:'text',dsChoice:'choice',dsThai:'thai',dsRuby:'ruby',dsLine:'line'};for(const [id,k] of Object.entries(ids)){const el=document.getElementById(id);if(el)el.value=displayPrefs[k]}const vals={dsTextVal:displayPrefs.text+'px',dsChoiceVal:displayPrefs.choice+'px',dsThaiVal:displayPrefs.thai+'px',dsRubyVal:displayPrefs.ruby+'%',dsLineVal:(displayPrefs.line/100).toFixed(2)};for(const [id,v] of Object.entries(vals)){const el=document.getElementById(id);if(el)el.textContent=v}}
+function openDisplaySettings(){syncDisplayControls();const m=document.getElementById('displaySettings');m.classList.remove('hidden');m.setAttribute('aria-hidden','false')}
+function closeDisplaySettings(){const m=document.getElementById('displaySettings');m.classList.add('hidden');m.setAttribute('aria-hidden','true')}
+document.getElementById('displaySettingsBtn').onclick=openDisplaySettings;document.getElementById('dsClose').onclick=closeDisplaySettings;document.getElementById('displaySettings').onclick=e=>{if(e.target.id==='displaySettings')closeDisplaySettings()};
+[['dsFont','font'],['dsText','text'],['dsChoice','choice'],['dsThai','thai'],['dsRuby','ruby'],['dsLine','line']].forEach(([id,k])=>{document.getElementById(id).addEventListener(id==='dsFont'?'change':'input',e=>{displayPrefs[k]=id==='dsFont'?e.target.value:Number(e.target.value);applyDisplayPrefs();syncDisplayControls();saveDisplayPrefs()})});
+document.getElementById('dsReset').onclick=()=>{displayPrefs={...DISPLAY_DEFAULTS};applyDisplayPrefs();syncDisplayControls();saveDisplayPrefs()};
+loadDisplayPrefs();
+
+
+async function switchSession(next){
+  if(!dataSets[next]||next===currentSession)return;
+  commitEditorToQuestion();
+  await persistNow(true);
+  currentSession=next; sec='p1'; idx=0;
+  const saved=await idbGet('kv','dataset:'+currentSession);
+  db=mergeSeed(currentSeed(),saved);
+  $('#sessionTitle').textContent='N2・'+sessionLabels[currentSession];
+  $('#sessionSelect').value=currentSession;
+  sections();render();
+}
+$('#sessionSelect').onchange=e=>switchSession(e.target.value);
+
+loadPersistent();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+
+
+
+
+</script></body></html>
